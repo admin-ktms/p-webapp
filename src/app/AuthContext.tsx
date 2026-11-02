@@ -32,7 +32,11 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  signIn: (email: string, password: string) => Promise<boolean>;
+  signIn: (
+    email: string,
+    password: string,
+    captchaToken: string
+  ) => Promise<boolean>;
   signOut: () => Promise<void>;
   clearMessage: () => void;
 }
@@ -165,32 +169,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [validateSession]);
 
   // Authenticate, then validate the returned KTMS identity.
-  const signIn = async (
-    email: string,
-    password: string
-  ): Promise<boolean> => {
+const signIn = async (
+  email: string,
+  password: string,
+  captchaToken: string
+): Promise<boolean> => {
+  setAuth({
+    ...initialState,
+    status: "loading"
+  });
+
+  const { data, error } = await signInWithPassword(
+    email,
+    password,
+    captchaToken
+  );
+
+  if (error || !data.session) {
     setAuth({
       ...initialState,
-      status: "loading"
+      status: "anonymous",
+      message: error?.message || "Login could not be completed."
     });
 
-    const { data, error } = await signInWithPassword(
-      email,
-      password
-    );
+    return false;
+  }
 
-    if (error || !data.session) {
-      setAuth({
-        ...initialState,
-        status: "anonymous",
-        message: error?.message || "Login could not be completed."
-      });
-
-      return false;
-    }
-
-    return validateSession(data.session);
-  };
+  return validateSession(data.session);
+};
 
   const signOut = async () => {
     requestId.current += 1;
