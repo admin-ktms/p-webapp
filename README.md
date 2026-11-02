@@ -21,3 +21,22 @@ test player account details
 | PLY000003 | KTMS Webhook Test 2     | ktms-webhook-test-2@example.com  | ply_ply000003_34bbaa | TestPlayer2026! | Active      |
 | PLY000002 | KTMS Webhook Test 1     | ktms-webhook-test-1@example.com  | ply_ply000002_d59461 | TestPlayer2026! | Active      |
 | PLY000001 | KTMS Paystack Test 2    | ktms-test-2-260926@example.com   | ply_ply000001_0cc677 | TestPlayer2026! | Active      |
+
+
+Player webapp palette
+:root {
+  --background: #050505;
+  --panel: #141414;
+  --surface: #222222;
+
+  --primary: #B7FF00;
+  --competition: #FF6B00;
+  --gold: #FFC857;
+
+  --text: #F5F5F5;
+  --muted: #A3A3A3;
+  --border: #303030;
+
+  --success: #35D07F;
+  --danger: #FF4559;
+}
