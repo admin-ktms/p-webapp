@@ -13,16 +13,20 @@ export interface PlayerIdentity {
   account_status: string | null;
 }
 
-export type PlayerAccessLevel = "full" | "profile_only";
+export type PlayerAccessLevel = "full" | "profile_only";tokenurnstileerifiedokenoken
 
-// Authenticate using email and password.
+// Authenticatetoken password and a verified Turnstile token.
 export async function signInWithPassword(
   email: string,
-  password: string
+  password: string,
+  captchaToken: string
 ) {
   return supabase.auth.signInWithPassword({
     email: email.trim(),
-    password
+    password,
+    options: {
+      captchaToken
+    }
   });
 }
 
