@@ -40,3 +40,4 @@ Player webapp palette
   --success: #35D07F;
   --danger: #FF4559;
 }
+fg
