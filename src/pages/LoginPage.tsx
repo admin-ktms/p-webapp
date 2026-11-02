@@ -1,32 +1,43 @@
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
-import { ShieldCheck, Trophy, LogIn } from "lucide-react";
+import { ShieldCheck, Trophy, LogIn, LoaderCircle, RefreshCw } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
-
 import { useAuth } from "../app/AuthContext";
 
-function LoginPage() {
+export default function LoginPage() {
   const {
     status,
     accessLevel,
     message,
     signIn,
-    clearMessage
+    clearMessage,
   } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaKey, setCaptchaKey] = useState(0);
+  const [captchaReady, setCaptchaReady] = useState(false);
   const [captchaError, setCaptchaError] = useState("");
-
   const [submitting, setSubmitting] = useState(false);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
-  // Redirect authenticated players.
+  // Show a fallback if the widget takes too long to render.
+  useEffect(() => {
+    if (captchaToken || captchaReady || captchaError) return;
+
+    const timeout = window.setTimeout(() => {
+      setCaptchaError(
+        "Security verification is taking longer than expected. Please retry."
+      );
+    }, 20000);
+
+    return () => window.clearTimeout(timeout);
+  }, [captchaKey, captchaToken, captchaReady, captchaError]);
+
+  // Redirect authenticated players to their permitted landing page.
   if (status === "authorized") {
     return (
       <Navigate
@@ -36,133 +47,149 @@ function LoginPage() {
     );
   }
 
-  // Wait for session restoration and identity verification.
+  // Keep the login page hidden while the existing session is checked.
   if (status === "loading") {
     return (
-      <div className="auth-loading">
-        <div className="loading-spinner" />
+      <main className="auth-loading">
+        <LoaderCircle className="loading-spinner" size={30} />
         <p>Verifying player account...</p>
-      </div>
+      </main>
     );
   }
 
-  // Restart CAPTCHA verification.
-  const resetCaptcha = () => {
+  // Start a fresh CAPTCHA challenge.
+  function resetCaptcha() {
     setCaptchaToken("");
+    setCaptchaReady(false);
     setCaptchaError("");
-    setCaptchaKey((previous) => previous + 1);
-  };
+    setCaptchaKey((current) => current + 1);
+  }
 
-  // Accept a successful CAPTCHA verification.
-  const handleCaptchaSuccess = (token: string) => {
+  function handleCaptchaLoad() {
+    setCaptchaReady(true);
     setCaptchaError("");
+  }
+
+  function handleCaptchaSuccess(token: string) {
     setCaptchaToken(token);
-  };
+    setCaptchaError("");
+  }
 
-  // Handle CAPTCHA expiration.
-  const handleCaptchaExpire = () => {
-    resetCaptcha();
-  };
+  function handleCaptchaExpire() {
+    setCaptchaToken("");
+    setCaptchaError("Verification expired. Please complete it again.");
+  }
 
-  // Handle CAPTCHA errors.
-  const handleCaptchaError = () => {
+  function handleCaptchaError() {
     setCaptchaToken("");
     setCaptchaError(
-      "Verification failed. Please try again."
+      "Verification could not be completed. Check your connection and retry."
     );
-  };
+  }
 
-  // Authenticate using the verified CAPTCHA token.
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!captchaToken || submitting) {
-      return;
-    }
+    if (!captchaToken || submitting) return;
 
-    clearMessage();
     setSubmitting(true);
+    clearMessage();
 
     try {
-      await signIn(email, password, captchaToken);
-    } catch {
-      // Supabase errors are reported through AuthContext.
+      await signIn(email.trim(), password, captchaToken);
     } finally {
-      // Require a fresh token after every login attempt.
+      // CAPTCHA tokens are single-use. Require a fresh challenge.
       resetCaptcha();
       setSubmitting(false);
     }
-  };
+  }
 
-  // Show CAPTCHA before displaying the login form.
-  if (!captchaToken) {
+  // Require a configured public site key.
+  if (!siteKey) {
     return (
       <main className="captcha-page">
         <section className="captcha-card">
-          <div className="login-brand-mark">
-            <ShieldCheck size={27} />
-          </div>
-
-          <p className="login-eyebrow">
-            KICKOFF PLAYER ARENA
-          </p>
-
-          <h1>Security Verification</h1>
-
-          <p className="login-description">
-            Complete the security verification to continue
-            to your player account.
-          </p>
-
-          {message && (
-            <div className="login-error" role="alert">
-              {message}
-            </div>
-          )}
-
-          {captchaError && (
-            <div className="login-error" role="alert">
-              {captchaError}
-            </div>
-          )}
-
-          {siteKey ? (
-            <div className="captcha-widget">
-              <Turnstile
-                key={captchaKey}
-                siteKey={siteKey}
-                onSuccess={handleCaptchaSuccess}
-                onExpire={handleCaptchaExpire}
-                onError={handleCaptchaError}
-              />
-            </div>
-          ) : (
-            <div className="login-error" role="alert">
-              CAPTCHA configuration is missing.
-            </div>
-          )}
-
-          {captchaError && siteKey && (
-            <button
-              type="button"
-              className="captcha-retry"
-              onClick={resetCaptcha}
-            >
-              Try verification again
-            </button>
-          )}
-
-          <p className="login-footer">
-            Protected by Cloudflare Turnstile.
+          <ShieldCheck className="captcha-brand-icon" size={34} />
+          <p className="login-eyebrow">KICKOFF PLAYER ARENA</p>
+          <h1>Verification unavailable</h1>
+          <p className="captcha-description">
+            The security verification service is not configured. Please
+            contact the platform administrator.
           </p>
         </section>
       </main>
     );
   }
 
-  // Display the normal login screen after verification.
+  // Show CAPTCHA before exposing the login form.
+  if (!captchaToken) {
+    return (
+      <main className="captcha-page">
+        <section className="captcha-card">
+          <div className="captcha-brand">
+            <div className="captcha-brand-mark">
+              <ShieldCheck size={25} />
+            </div>
+            <p className="login-eyebrow">KICKOFF PLAYER ARENA</p>
+          </div>
+
+          <h1>Security Verification</h1>
+          <p className="captcha-description">
+            Complete the security verification to continue to your player
+            account.
+          </p>
+
+          <div className="captcha-status" aria-live="polite">
+            {captchaError ? (
+              <div className="captcha-error">
+                <p>{captchaError}</p>
+                <button
+                  type="button"
+                  className="captcha-retry"
+                  onClick={resetCaptcha}
+                >
+                  <RefreshCw size={16} />
+                  Try again
+                </button>
+              </div>
+            ) : !captchaReady ? (
+              <div className="captcha-loading">
+                <LoaderCircle size={19} className="loading-spinner" />
+                <span>Preparing security verification...</span>
+              </div>
+            ) : (
+              <p className="captcha-ready">
+                Verification is ready. Complete the check below.
+              </p>
+            )}
+          </div>
+
+          <div className="captcha-widget">
+            <Turnstile
+              key={captchaKey}
+              siteKey={siteKey}
+              onWidgetLoad={handleCaptchaLoad}
+              onSuccess={handleCaptchaSuccess}
+              onExpire={handleCaptchaExpire}
+              onError={handleCaptchaError}
+              onUnsupported={handleCaptchaError}
+              options={{
+                theme: "dark",
+                language: "en",
+              }}
+            />
+          </div>
+
+          <div className="captcha-footer">
+            <ShieldCheck size={15} />
+            <span>Protected by Cloudflare Turnstile</span>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  // Render the login form only after CAPTCHA succeeds.
   return (
     <main className="login-page">
       <section className="login-card">
@@ -170,79 +197,73 @@ function LoginPage() {
           <div className="login-brand-mark">
             <Trophy size={27} />
           </div>
-
-          <p className="login-eyebrow">
-            KICKOFF PLAYER ARENA
-          </p>
-
-          <h1>Welcome Back</h1>
-
-          <p className="login-description">
-            Sign in to access your player account.
-          </p>
+          <p className="login-eyebrow">KICKOFF PLAYER ARENA</p>
         </div>
 
-        <form
-          className="login-form"
-          onSubmit={handleSubmit}
-        >
-          {message && (
-            <div className="login-error" role="alert">
-              {message}
-            </div>
-          )}
+        <h1>Welcome Back</h1>
+        <p className="login-description">
+          Sign in to access your player account and tournament activities.
+        </p>
 
-          <label htmlFor="email">
-            Email address
-          </label>
+        {message && (
+          <div className="login-error" role="alert">
+            {message}
+          </div>
+        )}
 
-          <input
-            id="email"
-            type="email"
-            autoComplete="username"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              clearMessage();
-            }}
-            required
-            disabled={submitting}
-          />
+        <form className="login-form" onSubmit={handleSubmit}>
+          <div className="login-field">
+            <label htmlFor="player-email">Email address</label>
+            <input
+              id="player-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Enter your email"
+              autoComplete="username"
+              required
+              disabled={submitting}
+            />
+          </div>
 
-          <label htmlFor="password">
-            Password
-          </label>
-
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
-              clearMessage();
-            }}
-            required
-            disabled={submitting}
-          />
+          <div className="login-field">
+            <label htmlFor="player-password">Password</label>
+            <input
+              id="player-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              required
+              disabled={submitting}
+            />
+          </div>
 
           <button
             type="submit"
-            disabled={submitting}
+            className="login-submit"
+            disabled={submitting || !email.trim() || !password}
           >
-            <LogIn size={18} />
-            {submitting ? "Signing in..." : "Sign In"}
+            {submitting ? (
+              <>
+                <LoaderCircle size={18} className="loading-spinner" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <LogIn size={18} />
+                Sign In
+              </>
+            )}
           </button>
         </form>
 
-        <p className="login-footer">
-          Authorized player accounts only.
-        </p>
+        <div className="login-footer">
+          <ShieldCheck size={15} />
+          <span>Secure player account access</span>
+        </div>
       </section>
     </main>
   );
 }
-
-export default LoginPage;
