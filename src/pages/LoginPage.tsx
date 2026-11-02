@@ -159,7 +159,7 @@ export default function LoginPage() {
               </div>
             ) : (
               <p className="captcha-ready">
-                Verification is ready. Complete the check below.
+                Verification is ready. Login page is being prepared, this might take a minute.
               </p>
             )}
           </div>
