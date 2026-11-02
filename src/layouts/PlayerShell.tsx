@@ -1,5 +1,4 @@
 
-
 import { useState } from "react";
 import {
   NavLink,
@@ -17,8 +16,11 @@ import {
   ReceiptText,
   ClipboardList,
   MoreHorizontal,
-  X
+  X,
+  LogOut
 } from "lucide-react";
+
+import { useAuth } from "../contexts/AuthContext";
 
 const primaryLinks = [
   { label: "Home", path: "/", icon: Home },
@@ -36,13 +38,23 @@ const moreLinks = [
 function PlayerShell() {
   const location = useLocation();
 
+  const { accessLevel, signOut, identity } = useAuth();
+
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const morePaths = moreLinks.map((item) => item.path);
+  const profileOnly = accessLevel === "profile_only";
+
+  const visiblePrimaryLinks = profileOnly
+    ? [moreLinks[0]]
+    : primaryLinks;
+
+  const visibleMoreLinks = profileOnly ? [] : moreLinks;
+
+  const morePaths = visibleMoreLinks.map((item) => item.path);
 
   const isMoreRoute = morePaths.includes(location.pathname);
 
-  const showMore = moreOpen || isMoreRoute;
+  const showMore = !profileOnly && (moreOpen || isMoreRoute);
 
   const closeMore = () => setMoreOpen(false);
 
@@ -50,11 +62,8 @@ function PlayerShell() {
     `nav-link ${isActive ? "active" : ""}`;
 
   return (
-    <div className="app-shell">
-
-      {/* Desktop sidebar */}
+    <div className={`app-shell ${profileOnly ? "profile-only-shell" : ""}`}>
       <aside className="desktop-sidebar">
-
         <div className="brand">
           <div className="brand-mark">
             <Trophy size={22} />
@@ -67,10 +76,11 @@ function PlayerShell() {
         </div>
 
         <nav className="sidebar-navigation">
+          <p className="nav-section-label">
+            {profileOnly ? "ACCOUNT" : "MAIN MENU"}
+          </p>
 
-          <p className="nav-section-label">MAIN MENU</p>
-
-          {primaryLinks.map((item) => {
+          {visiblePrimaryLinks.map((item) => {
             const Icon = item.icon;
 
             return (
@@ -86,59 +96,57 @@ function PlayerShell() {
             );
           })}
 
-          <div className="more-section">
+          {!profileOnly && (
+            <div className="more-section">
+              <button
+                type="button"
+                className={`nav-link more-toggle ${
+                  isMoreRoute ? "active" : ""
+                }`}
+                onClick={() => setMoreOpen(!moreOpen)}
+                aria-expanded={showMore}
+              >
+                <MoreHorizontal size={19} />
+                <span>More</span>
 
-            <button
-              type="button"
-              className={`nav-link more-toggle ${
-                isMoreRoute ? "active" : ""
-              }`}
-              onClick={() => setMoreOpen(!moreOpen)}
-              aria-expanded={showMore}
-            >
-              <MoreHorizontal size={19} />
+                <ChevronDown
+                  size={17}
+                  className={`chevron ${showMore ? "rotated" : ""}`}
+                />
+              </button>
 
-              <span>More</span>
+              {showMore && (
+                <div className="more-links">
+                  {visibleMoreLinks.map((item) => {
+                    const Icon = item.icon;
 
-              <ChevronDown
-                size={17}
-                className={`chevron ${showMore ? "rotated" : ""}`}
-              />
-            </button>
-
-            {showMore && (
-              <div className="more-links">
-                {moreLinks.map((item) => {
-                  const Icon = item.icon;
-
-                  return (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      className={linkClass}
-                    >
-                      <Icon size={18} />
-                      <span>{item.label}</span>
-                    </NavLink>
-                  );
-                })}
-              </div>
-            )}
-
-          </div>
+                    return (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        className={linkClass}
+                      >
+                        <Icon size={18} />
+                        <span>{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         <div className="sidebar-footer">
           <div className="status-indicator" />
-          <span>PLAYER PORTAL</span>
+          <span>
+            {profileOnly ? "PROFILE ACCESS ONLY" : "PLAYER PORTAL"}
+          </span>
         </div>
       </aside>
 
-      {/* Main application */}
       <div className="main-area">
-
         <header className="app-header">
-
           <div className="mobile-brand">
             <div className="brand-mark">
               <Trophy size={19} />
@@ -148,7 +156,11 @@ function PlayerShell() {
           </div>
 
           <div className="header-right">
-            <span className="header-label">PLAYER ARENA</span>
+            {profileOnly && (
+              <span className="restricted-label">
+                PROFILE ONLY
+              </span>
+            )}
 
             <NavLink
               to="/profile"
@@ -157,20 +169,33 @@ function PlayerShell() {
             >
               <UserRound size={19} />
             </NavLink>
-          </div>
 
+            <button
+              type="button"
+              className="logout-button"
+              onClick={() => void signOut()}
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
         </header>
+
+        {profileOnly && (
+          <div className="restricted-notice">
+            Your player account is not active. Only your profile is
+            available.
+          </div>
+        )}
 
         <main className="page-content">
           <Outlet />
         </main>
-
       </div>
 
-      {/* Mobile More navigation panel */}
-      {moreOpen && (
+      {!profileOnly && moreOpen && (
         <div className="mobile-more-panel">
-
           <div className="more-panel-header">
             <strong>MORE</strong>
 
@@ -183,7 +208,7 @@ function PlayerShell() {
             </button>
           </div>
 
-          {moreLinks.map((item) => {
+          {visibleMoreLinks.map((item) => {
             const Icon = item.icon;
 
             return (
@@ -198,14 +223,15 @@ function PlayerShell() {
               </NavLink>
             );
           })}
-
         </div>
       )}
 
-      {/* Mobile bottom navigation */}
-      <nav className="mobile-bottom-navigation">
-
-        {primaryLinks.map((item) => {
+      <nav
+        className={`mobile-bottom-navigation ${
+          profileOnly ? "restricted-bottom-navigation" : ""
+        }`}
+      >
+        {visiblePrimaryLinks.map((item) => {
           const Icon = item.icon;
 
           return (
@@ -222,20 +248,20 @@ function PlayerShell() {
           );
         })}
 
-        <button
-          type="button"
-          className={`nav-link more-mobile-button ${
-            showMore ? "active" : ""
-          }`}
-          onClick={() => setMoreOpen(!moreOpen)}
-          aria-expanded={moreOpen}
-        >
-          <MoreHorizontal size={21} />
-          <span>More</span>
-        </button>
-
+        {!profileOnly && (
+          <button
+            type="button"
+            className={`nav-link more-mobile-button ${
+              showMore ? "active" : ""
+            }`}
+            onClick={() => setMoreOpen(!moreOpen)}
+            aria-expanded={moreOpen}
+          >
+            <MoreHorizontal size={21} />
+            <span>More</span>
+          </button>
+        )}
       </nav>
-
     </div>
   );
 }
