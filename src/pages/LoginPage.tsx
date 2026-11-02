@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [captchaReady, setCaptchaReady] = useState(false);
   const [captchaError, setCaptchaError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [preparingLogin, setPreparingLogin] = useState(false);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
@@ -32,7 +33,7 @@ export default function LoginPage() {
       setCaptchaError(
         "Security verification is taking longer than expected. Please retry."
       );
-    }, 20000);
+    }, 3000);
 
     return () => window.clearTimeout(timeout);
   }, [captchaKey, captchaToken, captchaReady, captchaError]);
@@ -71,8 +72,15 @@ export default function LoginPage() {
   }
 
   function handleCaptchaSuccess(token: string) {
-    setCaptchaToken(token);
+    setCaptchaReady(true);
     setCaptchaError("");
+    setCaptchaToken(token);
+    setPreparingLogin(true);
+  
+    // Give the transition screen time to appear before showing login.
+    window.setTimeout(() => {
+      setPreparingLogin(false);
+    }, 900);
   }
 
   function handleCaptchaExpire() {
@@ -183,6 +191,53 @@ export default function LoginPage() {
           <div className="captcha-footer">
             <ShieldCheck size={15} />
             <span>Protected by Cloudflare Turnstile</span>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  // Show a short transition after successful verification.
+  if (captchaToken) {
+    return (
+      <main className="captcha-page">
+        <section className="captcha-card">
+          <div className="captcha-brand-mark">
+            <ShieldCheck size={28} />
+          </div>
+  
+          <h1>Verification successful</h1>
+  
+          <p className="captcha-description">
+            Your security check is complete. Preparing your KickOff player login...
+          </p>
+  
+          <div className="captcha-loading">
+            <LoaderCircle size={20} className="loading-spinner" />
+            <span>Please wait</span>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (preparingLogin) {
+    return (
+      <main className="captcha-page">
+        <section className="captcha-card">
+          <div className="captcha-brand-mark">
+            <ShieldCheck size={28} />
+          </div>
+  
+          <h1>Verification successful</h1>
+  
+          <p className="captcha-description">
+            Your security check is complete. Preparing your KickOff player login...
+          </p>
+  
+          <div className="captcha-loading">
+            <LoaderCircle size={20} className="loading-spinner" />
+            <span>Please wait</span>
           </div>
         </section>
       </main>
