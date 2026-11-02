@@ -2,8 +2,8 @@
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import PlayerShell from "./layouts/PlayerShell";
-import PlaceholderPage from "./components/PlaceholderPage";
+import PlayerShell from "../layouts/PlayerShell";
+import PlaceholderPage from "../pages/PlaceholderPage";
 
 function App() {
   return (
