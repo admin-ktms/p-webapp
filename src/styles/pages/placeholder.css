@@ -1,1 +1,53 @@
 
+/* Shared placeholder screen. */
+.page-placeholder {
+  display: flex;
+  min-height: 65vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+}
+
+.placeholder-icon {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  color: var(--primary);
+  background: rgba(183, 255, 0, 0.08);
+  border: 1px solid rgba(183, 255, 0, 0.2);
+  border-radius: 18px;
+}
+
+.eyebrow {
+  margin: 24px 0 8px;
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.page-placeholder h1 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.placeholder-description {
+  max-width: 370px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+@media (max-width: 767px) {
+  .page-placeholder {
+    min-height: 60vh;
+    padding: 20px 12px;
+  }
+}
+
