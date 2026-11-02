@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PlayerShell from "../layouts/PlayerShell";
 import PlaceholderPage from "../pages/PlaceholderPage";
 import LoginPage from "../pages/LoginPage";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "../components/ProtectedRoutes";
 
 function App() {
   return (
