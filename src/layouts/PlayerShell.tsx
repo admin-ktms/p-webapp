@@ -20,7 +20,7 @@ import {
   LogOut
 } from "lucide-react";
 
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../app/AuthContext";
 
 const primaryLinks = [
   { label: "Home", path: "/", icon: Home },
@@ -38,7 +38,7 @@ const moreLinks = [
 function PlayerShell() {
   const location = useLocation();
 
-  const { accessLevel, signOut, identity } = useAuth();
+  const { accessLevel, signOut } = useAuth();
 
   const [moreOpen, setMoreOpen] = useState(false);
 
