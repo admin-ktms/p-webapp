@@ -1,7 +1,8 @@
 
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
-import { Trophy, LogIn } from "lucide-react";
+import { ShieldCheck, Trophy, LogIn } from "lucide-react";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 import { useAuth } from "../app/AuthContext";
 
@@ -16,7 +17,14 @@ function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaKey, setCaptchaKey] = useState(0);
+  const [captchaError, setCaptchaError] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
+
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
   // Redirect authenticated players.
   if (status === "authorized") {
@@ -28,7 +36,7 @@ function LoginPage() {
     );
   }
 
-  // Wait for session restoration or identity verification.
+  // Wait for session restoration and identity verification.
   if (status === "loading") {
     return (
       <div className="auth-loading">
@@ -38,22 +46,123 @@ function LoginPage() {
     );
   }
 
-  // Authenticate the player.
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  // Restart CAPTCHA verification.
+  const resetCaptcha = () => {
+    setCaptchaToken("");
+    setCaptchaError("");
+    setCaptchaKey((previous) => previous + 1);
+  };
+
+  // Accept a successful CAPTCHA verification.
+  const handleCaptchaSuccess = (token: string) => {
+    setCaptchaError("");
+    setCaptchaToken(token);
+  };
+
+  // Handle CAPTCHA expiration.
+  const handleCaptchaExpire = () => {
+    resetCaptcha();
+  };
+
+  // Handle CAPTCHA errors.
+  const handleCaptchaError = () => {
+    setCaptchaToken("");
+    setCaptchaError(
+      "Verification failed. Please try again."
+    );
+  };
+
+  // Authenticate using the verified CAPTCHA token.
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
+
+    if (!captchaToken || submitting) {
+      return;
+    }
 
     clearMessage();
     setSubmitting(true);
 
     try {
-      await signIn(email, password);
+      await signIn(email, password, captchaToken);
     } catch {
-      // Keep unexpected authentication failures visible.
+      // Supabase errors are reported through AuthContext.
     } finally {
+      // Require a fresh token after every login attempt.
+      resetCaptcha();
       setSubmitting(false);
     }
   };
 
+  // Show CAPTCHA before displaying the login form.
+  if (!captchaToken) {
+    return (
+      <main className="captcha-page">
+        <section className="captcha-card">
+          <div className="login-brand-mark">
+            <ShieldCheck size={27} />
+          </div>
+
+          <p className="login-eyebrow">
+            KICKOFF PLAYER ARENA
+          </p>
+
+          <h1>Security Verification</h1>
+
+          <p className="login-description">
+            Complete the security verification to continue
+            to your player account.
+          </p>
+
+          {message && (
+            <div className="login-error" role="alert">
+              {message}
+            </div>
+          )}
+
+          {captchaError && (
+            <div className="login-error" role="alert">
+              {captchaError}
+            </div>
+          )}
+
+          {siteKey ? (
+            <div className="captcha-widget">
+              <Turnstile
+                key={captchaKey}
+                siteKey={siteKey}
+                onSuccess={handleCaptchaSuccess}
+                onExpire={handleCaptchaExpire}
+                onError={handleCaptchaError}
+              />
+            </div>
+          ) : (
+            <div className="login-error" role="alert">
+              CAPTCHA configuration is missing.
+            </div>
+          )}
+
+          {captchaError && siteKey && (
+            <button
+              type="button"
+              className="captcha-retry"
+              onClick={resetCaptcha}
+            >
+              Try verification again
+            </button>
+          )}
+
+          <p className="login-footer">
+            Protected by Cloudflare Turnstile.
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  // Display the normal login screen after verification.
   return (
     <main className="login-page">
       <section className="login-card">
@@ -62,7 +171,10 @@ function LoginPage() {
             <Trophy size={27} />
           </div>
 
-          <p className="login-eyebrow">KICKOFF PLAYER ARENA</p>
+          <p className="login-eyebrow">
+            KICKOFF PLAYER ARENA
+          </p>
+
           <h1>Welcome Back</h1>
 
           <p className="login-description">
@@ -70,14 +182,19 @@ function LoginPage() {
           </p>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form
+          className="login-form"
+          onSubmit={handleSubmit}
+        >
           {message && (
             <div className="login-error" role="alert">
               {message}
             </div>
           )}
 
-          <label htmlFor="email">Email address</label>
+          <label htmlFor="email">
+            Email address
+          </label>
 
           <input
             id="email"
@@ -93,7 +210,9 @@ function LoginPage() {
             disabled={submitting}
           />
 
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">
+            Password
+          </label>
 
           <input
             id="password"
