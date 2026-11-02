@@ -1,19 +1,25 @@
 
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import PlayerShell from "../layouts/PlayerShell";
 import PlaceholderPage from "../pages/PlaceholderPage";
+import LoginPage from "../pages/LoginPage";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<PlayerShell />}>
-          <Route
-            index
-            element={<PlaceholderPage title="Home" />}
-          />
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route
+          element={
+            <ProtectedRoute>
+              <PlayerShell />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<PlaceholderPage title="Home" />} />
 
           <Route
             path="tournaments"
