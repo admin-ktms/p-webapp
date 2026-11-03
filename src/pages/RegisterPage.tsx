@@ -6,7 +6,9 @@ import {
   ShieldCheck,
   UserPlus,
   RefreshCw,
-  CheckCircle2
+  CheckCircle2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
@@ -87,6 +89,8 @@ export default function RegisterPage() {
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
   const email = session?.user.email ?? "";
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   // Auth signup fields.
   const [signupEmail, setSignupEmail] = useState("");
@@ -557,29 +561,70 @@ export default function RegisterPage() {
 
               <label htmlFor="registration-password">
                 Password
-                <input
-                  id="registration-password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete="new-password"
-                  required
-                  disabled={submitting}
-                />
+              
+                <div className="password-input-wrapper">
+                  <input
+                    id="registration-password"
+                    type={passwordVisible ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    required
+                    disabled={submitting}
+                  />
+              
+                  <button
+                    type="button"
+                    className="password-visibility-toggle"
+                    onClick={() => setPasswordVisible((visible) => !visible)}
+                    aria-label={passwordVisible ? "Hide password" : "Show password"}
+                    aria-pressed={passwordVisible}
+                    disabled={submitting}
+                  >
+                    {passwordVisible ? (
+                      <EyeOff size={19} />
+                    ) : (
+                      <Eye size={19} />
+                    )}
+                  </button>
+                </div>
               </label>
 
               <label htmlFor="registration-confirm-password">
                 Confirm password
-                <input
-                  id="registration-confirm-password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  autoComplete="new-password"
-                  required
-                  disabled={submitting}
-                />
+              
+                <div className="password-input-wrapper">
+                  <input
+                    id="registration-confirm-password"
+                    type={confirmPasswordVisible ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    required
+                    disabled={submitting}
+                  />
+              
+                  <button
+                    type="button"
+                    className="password-visibility-toggle"
+                    onClick={() => setConfirmPasswordVisible((visible) => !visible)}
+                    aria-label={
+                      confirmPasswordVisible
+                        ? "Hide confirmation password"
+                        : "Show confirmation password"
+                    }
+                    aria-pressed={confirmPasswordVisible}
+                    disabled={submitting}
+                  >
+                    {confirmPasswordVisible ? (
+                      <EyeOff size={19} />
+                    ) : (
+                      <Eye size={19} />
+                    )}
+                  </button>
+                </div>
               </label>
+                
 
               <Captcha
                 siteKey={siteKey}
