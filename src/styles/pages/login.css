@@ -307,3 +307,53 @@
     transition: none;
   }
 }
+
+/* Login secondary actions. */
+.login-text-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 19px auto 0;
+  padding: 7px 10px;
+  color: var(--primary);
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-text-button:hover {
+  text-decoration: underline;
+}
+
+.login-text-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Password-reset confirmation and recovery states. */
+.login-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 14px;
+  color: var(--success);
+  background: rgb(53 208 127 / 8%);
+  border: 1px solid rgb(53 208 127 / 25%);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.login-card a.login-submit {
+  text-decoration: none;
+}
+
+.login-card a.login-submit:hover {
+  opacity: 0.9;
+}
+
+
