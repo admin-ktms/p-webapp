@@ -1,9 +1,21 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
-import { ShieldCheck, Trophy, LogIn, LoaderCircle, RefreshCw } from "lucide-react";
+import {
+  ShieldCheck,
+  Trophy,
+  LogIn,
+  LoaderCircle,
+  RefreshCw,
+  Mail,
+  ArrowLeft,
+  CheckCircle2
+} from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useAuth } from "../app/AuthContext";
+import { requestPlayerPasswordReset } from "../services/auth.service";
+
+type LoginMode = "login" | "reset";
 
 export default function LoginPage() {
   const {
@@ -11,22 +23,36 @@ export default function LoginPage() {
     accessLevel,
     message,
     signIn,
-    clearMessage,
+    clearMessage
   } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [mode, setMode] = useState<LoginMode>("login");
+  const [resetRequested, setResetRequested] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const [resetSubmitting, setResetSubmitting] = useState(false);
+
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaKey, setCaptchaKey] = useState(0);
   const [captchaReady, setCaptchaReady] = useState(false);
   const [captchaError, setCaptchaError] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
-  // Show a fallback if the widget takes too long to render.
+  // Detect a CAPTCHA widget that takes too long to load.
   useEffect(() => {
-    if (captchaToken || captchaReady || captchaError) return;
+    if (
+      captchaToken ||
+      captchaReady ||
+      captchaError ||
+      resetRequested
+    ) {
+      return;
+    }
 
     const timeout = window.setTimeout(() => {
       setCaptchaError(
@@ -35,9 +61,15 @@ export default function LoginPage() {
     }, 20000);
 
     return () => window.clearTimeout(timeout);
-  }, [captchaKey, captchaToken, captchaReady, captchaError]);
+  }, [
+    captchaKey,
+    captchaToken,
+    captchaReady,
+    captchaError,
+    resetRequested
+  ]);
 
-  // Redirect authenticated players to their permitted landing page.
+  // Redirect authenticated players.
   if (status === "authorized") {
     return (
       <Navigate
@@ -47,7 +79,6 @@ export default function LoginPage() {
     );
   }
 
-  // Keep the login page hidden while the existing session is checked.
   if (status === "loading") {
     return (
       <main className="auth-loading">
@@ -87,6 +118,54 @@ export default function LoginPage() {
     );
   }
 
+  // Return to login and require fresh verification.
+  function handleBackToLogin() {
+    setMode("login");
+    setResetRequested(false);
+    setResetError("");
+    setPassword("");
+    clearMessage();
+    resetCaptcha();
+  }
+
+  // Request a password-reset email.
+  async function handlePasswordReset(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    if (!captchaToken || resetSubmitting) return;
+
+    setResetSubmitting(true);
+    setResetError("");
+
+    try {
+      const redirectTo = `${window.location.origin}/reset-password`;
+
+      const { error } = await requestPlayerPasswordReset(
+        email.trim(),
+        captchaToken,
+        redirectTo
+      );
+
+      if (error) {
+        setResetError(error.message);
+        return;
+      }
+
+      setResetRequested(true);
+    } catch {
+      setResetError(
+        "Could not request a password reset. Please retry."
+      );
+    } finally {
+      // CAPTCHA tokens are single-use.
+      resetCaptcha();
+      setResetSubmitting(false);
+    }
+  }
+
+  // Authenticate the player.
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -98,7 +177,6 @@ export default function LoginPage() {
     try {
       await signIn(email.trim(), password, captchaToken);
     } finally {
-      // CAPTCHA tokens are single-use. Require a fresh challenge.
       resetCaptcha();
       setSubmitting(false);
     }
@@ -109,19 +187,54 @@ export default function LoginPage() {
     return (
       <main className="captcha-page">
         <section className="captcha-card">
-          <ShieldCheck className="captcha-brand-icon" size={34} />
+          <ShieldCheck size={34} />
           <p className="login-eyebrow">KICKOFF PLAYER ARENA</p>
           <h1>Verification unavailable</h1>
           <p className="captcha-description">
-            The security verification service is not configured. Please
-            contact the platform administrator.
+            Security verification is not configured. Contact the
+            platform administrator.
           </p>
         </section>
       </main>
     );
   }
 
-  // Show CAPTCHA before exposing the login form.
+  // Confirm that a reset email was requested.
+  if (resetRequested) {
+    return (
+      <main className="login-page">
+        <section className="login-card">
+          <div className="login-brand-mark">
+            <CheckCircle2 size={28} />
+          </div>
+
+          <h1>Check your email</h1>
+
+          <p className="login-description">
+            If an account exists for this email address, a password
+            reset link has been sent. Follow the link to choose a
+            new password.
+          </p>
+
+          <button
+            type="button"
+            className="login-submit"
+            onClick={handleBackToLogin}
+          >
+            <ArrowLeft size={18} />
+            Back to sign in
+          </button>
+
+          <div className="login-footer">
+            <ShieldCheck size={15} />
+            <span>Secure player account access</span>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  // CAPTCHA must be completed before login or reset operations.
   if (!captchaToken) {
     return (
       <main className="captcha-page">
@@ -134,9 +247,10 @@ export default function LoginPage() {
           </div>
 
           <h1>Security Verification</h1>
+
           <p className="captcha-description">
-            Complete the security verification to continue to your player
-            account.
+            Complete the security verification to continue to your
+            player account.
           </p>
 
           <div className="captcha-status" aria-live="polite">
@@ -159,7 +273,7 @@ export default function LoginPage() {
               </div>
             ) : (
               <p className="captcha-ready">
-                Verification is ready. Login page is being prepared, this might take a minute.
+                Verification is ready. Complete the check below.
               </p>
             )}
           </div>
@@ -175,7 +289,7 @@ export default function LoginPage() {
               onUnsupported={handleCaptchaError}
               options={{
                 theme: "dark",
-                language: "en",
+                language: "en"
               }}
             />
           </div>
@@ -189,7 +303,87 @@ export default function LoginPage() {
     );
   }
 
-  // Render the login form only after CAPTCHA succeeds.
+  // Show the password-reset request form.
+  if (mode === "reset") {
+    return (
+      <main className="login-page">
+        <section className="login-card">
+          <div className="login-brand">
+            <div className="login-brand-mark">
+              <Mail size={27} />
+            </div>
+            <p className="login-eyebrow">KICKOFF PLAYER ARENA</p>
+          </div>
+
+          <h1>Reset Password</h1>
+
+          <p className="login-description">
+            Enter the email address linked to your player account.
+            We will send you a secure password-reset link.
+          </p>
+
+          {resetError && (
+            <div className="login-error" role="alert">
+              {resetError}
+            </div>
+          )}
+
+          <form
+            className="login-form"
+            onSubmit={handlePasswordReset}
+          >
+            <div className="login-field">
+              <label htmlFor="reset-email">Email address</label>
+              <input
+                id="reset-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="Enter your registered email"
+                autoComplete="email"
+                required
+                disabled={resetSubmitting}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="login-submit"
+              disabled={resetSubmitting || !email.trim()}
+            >
+              {resetSubmitting ? (
+                <>
+                  <LoaderCircle size={18} className="loading-spinner" />
+                  Sending reset link...
+                </>
+              ) : (
+                <>
+                  <Mail size={18} />
+                  Send reset link
+                </>
+              )}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            className="login-text-button"
+            onClick={handleBackToLogin}
+          >
+            <ArrowLeft size={15} />
+            Back to sign in
+          </button>
+
+          <div className="login-footer">
+            <ShieldCheck size={15} />
+            <span>Secure player account access</span>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  // Render the normal login form.
   return (
     <main className="login-page">
       <section className="login-card">
@@ -201,6 +395,7 @@ export default function LoginPage() {
         </div>
 
         <h1>Welcome Back</h1>
+
         <p className="login-description">
           Sign in to access your player account and tournament activities.
         </p>
@@ -258,6 +453,18 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        <button
+          type="button"
+          className="login-text-button"
+          onClick={() => {
+            setMode("reset");
+            setResetError("");
+            clearMessage();
+          }}
+        >
+          Forgot password?
+        </button>
 
         <div className="login-footer">
           <ShieldCheck size={15} />
