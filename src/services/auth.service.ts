@@ -15,7 +15,7 @@ export interface PlayerIdentity {
 
 export type PlayerAccessLevel = "full" | "profile_only";
 
-// Authenticatetoken password and a verified Turnstile token.
+// Authenticate using password and verified CAPTCHA.
 export async function signInWithPassword(
   email: string,
   password: string,
@@ -30,11 +30,26 @@ export async function signInWithPassword(
   });
 }
 
+// Send the password-reset email.
+export async function requestPlayerPasswordReset(
+  email: string,
+  captchaToken: string,
+  redirectTo: string
+) {
+  return supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo,
+    captchaToken
+  });
+}
+
+// Save the new password from a valid recovery session.
+export async function updatePlayerPassword(password: string) {
+  return supabase.auth.updateUser({ password });
+}
+
 // Resolve the authenticated Supabase user to a KTMS identity.
 export async function resolvePlayerIdentity() {
-  const { data, error } = await supabase.rpc(
-    "identity_resolver"
-  );
+  const { data, error } = await supabase.rpc("identity_resolver");
 
   if (error) {
     throw error;
@@ -99,7 +114,6 @@ export async function validatePlayerSession(
     };
   }
 
-  // Unknown statuses must never receive access by default.
   throw new Error("Your player account status is not recognized.");
 }
 
