@@ -356,4 +356,29 @@
   opacity: 0.9;
 }
 
+/* Secondary registration link. */
+.login-signup-link {
+  display: block;
+  width: fit-content;
+  margin: 12px auto 0;
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+}
 
+.login-signup-link span {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.login-signup-link:hover span {
+  text-decoration: underline;
+}
+
+.login-signup-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
