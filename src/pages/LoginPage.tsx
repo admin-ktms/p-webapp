@@ -9,7 +9,9 @@ import {
   RefreshCw,
   Mail,
   ArrowLeft,
-  CheckCircle2
+  CheckCircle2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useAuth } from "../app/AuthContext";
@@ -28,6 +30,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const [mode, setMode] = useState<LoginMode>("login");
   const [resetRequested, setResetRequested] = useState(false);
@@ -417,31 +420,35 @@ export default function LoginPage() {
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-field">
-            <label htmlFor="player-email">Email address</label>
-            <input
-              id="player-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Enter your email"
-              autoComplete="username"
-              required
-              disabled={submitting}
-            />
-          </div>
-
-          <div className="login-field">
             <label htmlFor="player-password">Password</label>
-            <input
-              id="player-password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              required
-              disabled={submitting}
-            />
+          
+            <div className="password-input-wrapper">
+              <input
+                id="player-password"
+                type={passwordVisible ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                required
+                disabled={submitting}
+              />
+          
+              <button
+                type="button"
+                className="password-visibility-toggle"
+                onClick={() => setPasswordVisible((visible) => !visible)}
+                aria-label={passwordVisible ? "Hide password" : "Show password"}
+                aria-pressed={passwordVisible}
+                disabled={submitting}
+              >
+                {passwordVisible ? (
+                  <EyeOff size={19} />
+                ) : (
+                  <Eye size={19} />
+                )}
+              </button>
+            </div>
           </div>
 
           <button
