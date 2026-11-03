@@ -1,6 +1,6 @@
 
 import { useEffect, useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   ShieldCheck,
   Trophy,
@@ -298,7 +298,11 @@ export default function LoginPage() {
               }}
             />
           </div>
-
+          
+          <Link to="/register" className="login-signup-link">
+            New player? <span>Create an account</span>
+          </Link>
+          
           <div className="captcha-footer">
             <ShieldCheck size={15} />
             <span>Protected by Cloudflare Turnstile</span>
@@ -471,6 +475,10 @@ export default function LoginPage() {
           Forgot password?
         </button>
 
+        <Link to="/register" className="login-signup-link">
+          New player? <span>Create an account</span>
+        </Link>
+        
         <div className="login-footer">
           <ShieldCheck size={15} />
           <span>Secure player account access</span>
