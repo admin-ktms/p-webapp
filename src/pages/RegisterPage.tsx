@@ -587,7 +587,7 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                <p className="registration-description">
+                <p className="registration-password">
                   Passwords must include numbers, letters, and symbol. e.g 'TestPlayer2026!'.
                 </p>
               </label>
