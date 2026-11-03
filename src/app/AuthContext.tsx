@@ -21,7 +21,7 @@ import {
   type PlayerIdentity
 } from "../services/auth.service";
 
-type AuthStatus = "loading" | "anonymous" | "authorized";
+type AuthStatus = "loading" | "anonymous" | "registration_pending" | "authorized";
 
 interface AuthState {
   status: AuthStatus;
@@ -86,6 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await validatePlayerSession(session);
 
         // Ignore results from older session requests.
+        // Keep confirmed, unlinked users authenticated for registration.
+        
         if (currentRequest !== requestId.current) {
           return false;
         }
@@ -100,28 +102,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return true;
       } catch (error) {
-        if (currentRequest !== requestId.current) {
+
+        if (
+          error instanceof Error &&
+          error.message === "ACCOUNT_NOT_LINKED"
+        ) {
+          setAuth({
+            status: "registration_pending",
+            session,
+            identity: null,
+            accessLevel: null,
+            message: null
+          });
+        
           return false;
         }
-
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Player authorization failed.";
-
-        setAuth({
-          status: "anonymous",
-          session: null,
-          identity: null,
-          accessLevel: null,
-          message
-        });
-
-        // Remove the session of an unauthorized identity.
-        await signOutPlayer();
-
-        return false;
-      }
     },
     []
   );
