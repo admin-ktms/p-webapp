@@ -420,6 +420,20 @@ export default function LoginPage() {
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-field">
+            <label htmlFor="player-email">Email address</label>
+          
+            <input
+              id="player-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Enter your email address"
+              autoComplete="email"
+              required
+              disabled={submitting}
+            />
+          </div>
+          <div className="login-field">
             <label htmlFor="player-password">Password</label>
           
             <div className="password-input-wrapper">
