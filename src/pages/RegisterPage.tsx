@@ -26,15 +26,6 @@ type RegistrationStep = "details" | "squad" | "review";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_]{4,20}$/;
 
-// Return today's date using the browser's local calendar date.
-function getLocalDateString(): string {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
 
 // Calculate the latest permitted date for an adult player.
 function getAdultDateLimit(): string {
