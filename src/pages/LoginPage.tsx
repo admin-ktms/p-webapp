@@ -79,6 +79,11 @@ export default function LoginPage() {
     );
   }
 
+  // Continue incomplete registrations.
+  if (status === "registration_pending") {
+    return <Navigate to="/register" replace />;
+  }
+  
   if (status === "loading") {
     return (
       <main className="auth-loading">
