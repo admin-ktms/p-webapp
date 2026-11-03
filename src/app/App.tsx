@@ -3,16 +3,22 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import PlayerShell from "../layouts/PlayerShell";
 import PlaceholderPage from "../pages/PlaceholderPage";
+
+import RegisterPage from "../pages/RegisterPage";
 import LoginPage from "../pages/LoginPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ProtectedRoute from "../components/ProtectedRoutes";
 
+
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter> 
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
 
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        
         <Route
           path="/reset-password"
           element={<ResetPasswordPage />}
