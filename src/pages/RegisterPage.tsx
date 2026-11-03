@@ -528,8 +528,7 @@ export default function RegisterPage() {
           <h1>Create your player account</h1>
 
           <p className="registration-description">
-            Create your login credentials. Your email must be confirmed before
-            you can enter your player details.
+            Create your login credentials and confirm your email.
           </p>
 
           {error && (
@@ -588,6 +587,9 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
+                <p className="registration-password">
+                  Passwords must include numbers, letters, and symbol. e.g 'TestPlayer2026!'.
+                </p>
               </label>
 
               <label htmlFor="registration-confirm-password">
