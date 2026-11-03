@@ -21,7 +21,11 @@ import {
   type PlayerIdentity
 } from "../services/auth.service";
 
-type AuthStatus = "loading" | "anonymous" | "registration_pending" | "authorized";
+type AuthStatus =
+  | "loading"
+  | "anonymous"
+  | "registration_pending"
+  | "authorized";
 
 interface AuthState {
   status: AuthStatus;
@@ -55,10 +59,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(initialState);
-
   const requestId = useRef(0);
 
-  // Resolve and validate every authenticated session.
+  // Resolve and validate the current Auth session.
   const validateSession = useCallback(
     async (session: Session | null): Promise<boolean> => {
       const currentRequest = ++requestId.current;
@@ -73,21 +76,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      setAuth((previous) => ({
-        ...previous,
+      setAuth({
+        ...initialState,
         status: "loading",
-        session,
-        identity: null,
-        accessLevel: null,
-        message: null
-      }));
+        session
+      });
 
       try {
         const result = await validatePlayerSession(session);
 
-        // Ignore results from older session requests.
-        // Keep confirmed, unlinked users authenticated for registration.
-        
+        // Ignore outdated session checks.
         if (currentRequest !== requestId.current) {
           return false;
         }
@@ -102,11 +100,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return true;
       } catch (error) {
+        // Ignore errors from outdated session checks.
+        if (currentRequest !== requestId.current) {
+          return false;
+        }
 
-        if (
-          error instanceof Error &&
-          error.message === "ACCOUNT_NOT_LINKED"
-        ) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Account verification failed.";
+
+        // Confirmed Auth users without KTMS identity may register.
+        if (errorMessage === "ACCOUNT_NOT_LINKED") {
           setAuth({
             status: "registration_pending",
             session,
@@ -114,14 +119,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             accessLevel: null,
             message: null
           });
-        
+
           return false;
         }
+
+        // Reject invalid or disabled player identities.
+        setAuth({
+          ...initialState,
+          status: "anonymous",
+          message: errorMessage
+        });
+
+        // Remove the rejected local session.
+        await signOutPlayer();
+
+        return false;
+      }
     },
     []
   );
 
-  // Restore sessions and listen for authentication changes.
+  // Restore sessions and observe authentication changes.
   useEffect(() => {
     let authEventVersion = 0;
 
@@ -130,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       authEventVersion += 1;
 
-      // Defer Supabase calls outside the auth callback.
+      // Defer session validation outside the Auth callback.
       window.setTimeout(() => {
         void validateSession(session);
       }, 0);
@@ -139,10 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initialVersion = authEventVersion;
 
     void supabase.auth.getSession().then(({ data, error }) => {
-      // Do not overwrite a newer auth event.
-      if (authEventVersion !== initialVersion) {
-        return;
-      }
+      // Do not overwrite a newer Auth event.
+      if (authEventVersion !== initialVersion) return;
 
       if (error) {
         setAuth({
@@ -163,36 +179,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [validateSession]);
 
-  // Authenticate, then validate the returned KTMS identity.
-const signIn = async (
-  email: string,
-  password: string,
-  captchaToken: string
-): Promise<boolean> => {
-  setAuth({
-    ...initialState,
-    status: "loading"
-  });
-
-  const { data, error } = await signInWithPassword(
-    email,
-    password,
-    captchaToken
-  );
-
-  if (error || !data.session) {
+  // Authenticate, then resolve the KTMS identity.
+  const signIn = async (
+    email: string,
+    password: string,
+    captchaToken: string
+  ): Promise<boolean> => {
     setAuth({
       ...initialState,
-      status: "anonymous",
-      message: error?.message || "Login could not be completed."
+      status: "loading"
     });
 
-    return false;
-  }
+    const { data, error } = await signInWithPassword(
+      email,
+      password,
+      captchaToken
+    );
 
-  return validateSession(data.session);
-};
+    if (error || !data.session) {
+      setAuth({
+        ...initialState,
+        status: "anonymous",
+        message: error?.message || "Login could not be completed."
+      });
 
+      return false;
+    }
+
+    return validateSession(data.session);
+  };
+
+  // End the local player session.
   const signOut = async () => {
     requestId.current += 1;
 
@@ -211,6 +228,7 @@ const signIn = async (
     }
   };
 
+  // Clear the current authentication message.
   const clearMessage = () => {
     setAuth((previous) => ({
       ...previous,
