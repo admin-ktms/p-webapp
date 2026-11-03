@@ -197,6 +197,52 @@
   cursor: not-allowed;
 }
 
+/* Password visibility control. */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  padding-right: 52px !important;
+}
+
+.password-visibility-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+
+  cursor: pointer;
+}
+
+.password-visibility-toggle:hover:not(:disabled) {
+  color: var(--primary);
+  background: rgb(183 255 0 / 7%);
+}
+
+.password-visibility-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.password-visibility-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Primary login action. */
 .login-submit {
   width: 100%;
