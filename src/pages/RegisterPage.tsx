@@ -56,7 +56,25 @@ function getRegistrationMessage(code: string): string {
     MINIMUM_AGE_NOT_MET: "Players must be at least 18 years old.",
     INVALID_SQUAD_NAME: "Enter a valid squad name.",
     SQUAD_NAME_REQUIRED: "Enter your initial squad name.",
-    PLAYER_REGISTRATION_COMPLETED: "Your player registration is complete."
+    PLAYER_REGISTRATION_COMPLETED: "Your player registration is complete.",
+    
+    // Existing player records.
+    EXISTING_PLAYER_EMAIL:
+      "This email address is registered. Sign in.",
+
+    WHATSAPP_NUMBER_ALREADY_REGISTERED:
+      "This WhatsApp number registered. Enter a different number or contact support.",
+
+    // Registration conflicts.
+    REGISTRATION_CONFLICT:
+      "Some registration information conflicts with an existing record. Check your details and try again.",
+
+    PLAYER_REGISTRATION_FAILED:
+      "Your player record could not be created. Your saved registration has been retained. Please retry or contact support.",
+
+    ACCOUNT_NOT_ELIGIBLE:
+      "This account cannot be used to create a player identity. Contact support."
+
   };
 
   return messages[code] ?? "The operation could not be completed. Please retry.";
