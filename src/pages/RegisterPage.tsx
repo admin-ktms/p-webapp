@@ -1,11 +1,16 @@
 
 import { useEffect, useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { LoaderCircle, ShieldCheck, UserPlus } from "lucide-react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import {
+  LoaderCircle,
+  ShieldCheck,
+  UserPlus,
+  RefreshCw,
+  CheckCircle2
+} from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
 import { useAuth } from "../app/AuthContext";
-import { supabase } from "../lib/supabase";
 
 import {
   signUpPlayer,
@@ -14,19 +19,68 @@ import {
   saveRegistrationDraft,
   getRegistrationDraft,
   finalizePlayerRegistration,
-  type RegistrationDraft
+  signOutPlayer
 } from "../services/auth.service";
 
 type RegistrationStep = "details" | "squad" | "review";
 
+const USERNAME_PATTERN = /^[A-Za-z0-9_]{4,20}$/;
+
+// Return today's date using the browser's local calendar date.
+function getLocalDateString(): string {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+// Calculate the latest permitted date for an adult player.
+function getAdultDateLimit(): string {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - 18);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+// Convert backend result codes into useful messages.
+function getRegistrationMessage(code: string): string {
+  const messages: Record<string, string> = {
+    AUTHENTICATION_REQUIRED: "Please sign in before continuing.",
+    EMAIL_VERIFICATION_REQUIRED: "Confirm your email before continuing.",
+    ACCOUNT_ALREADY_LINKED: "This account is already linked to a player.",
+    ACCOUNT_LINK_DISABLED: "This account link is disabled. Contact support.",
+    DRAFT_NOT_FOUND: "No saved registration was found.",
+    DRAFT_EXPIRED: "Your previous registration draft has expired.",
+    INVALID_USERNAME: "Enter a valid username using 4–20 letters, numbers or underscores.",
+    USERNAME_TAKEN: "That username is already reserved or in use.",
+    MANAGER_NAME_REQUIRED: "Enter your manager name.",
+    WHATSAPP_NUMBER_REQUIRED: "Enter your WhatsApp number.",
+    INVALID_DATE_OF_BIRTH: "Enter a valid date of birth.",
+    MINIMUM_AGE_NOT_MET: "Players must be at least 18 years old.",
+    INVALID_SQUAD_NAME: "Enter a valid squad name.",
+    SQUAD_NAME_REQUIRED: "Enter your initial squad name.",
+    PLAYER_REGISTRATION_COMPLETED: "Your player registration is complete."
+  };
+
+  return messages[code] ?? "The operation could not be completed. Please retry.";
+}
+
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { status, accessLevel } = useAuth();
+
+  const { status, accessLevel, session } = useAuth();
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const email = session?.user.email ?? "";
 
   // Auth signup fields.
-  const [email, setEmail] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -37,67 +91,104 @@ export default function RegisterPage() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [squadName, setSquadName] = useState("");
 
+  // Registration progress.
   const [step, setStep] = useState<RegistrationStep>("details");
   const [draftLoaded, setDraftLoaded] = useState(false);
-  const [emailConfirmationSent, setEmailConfirmationSent] =
-    useState(false);
 
-  // Username availability state.
-  const [usernameAvailable, setUsernameAvailable] =
-    useState<boolean | null>(null);
+  // Email confirmation.
+  const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
+
+  // Username availability.
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameCheckError, setUsernameCheckError] = useState("");
 
-  // CAPTCHA state.
+  // CAPTCHA.
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaKey, setCaptchaKey] = useState(0);
   const [captchaReady, setCaptchaReady] = useState(false);
+  const [captchaError, setCaptchaError] = useState("");
 
   // Submission and feedback.
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  // Load the existing draft after email confirmation.
+  // Restore the current user's saved registration draft.
   useEffect(() => {
     if (status !== "registration_pending") return;
 
     let cancelled = false;
 
     async function loadDraft() {
+      setDraftLoaded(false);
+      setError("");
+
       try {
         const draft = await getRegistrationDraft();
 
-        if (cancelled || !draft) return;
+        if (cancelled) return;
 
-        if (draft.result_code === "DRAFT_FOUND") {
-          setUsername(draft.username ?? "");
-          setManagerName(draft.manager_name ?? "");
-          setWhatsappNumber(draft.whatsapp_number ?? "");
-          setDateOfBirth(draft.date_of_birth ?? "");
-          setSquadName(draft.squad_name ?? "");
+        if (!draft) {
+          setError("Could not retrieve your registration draft.");
+          return;
+        }
 
-          // Resume at the first incomplete stage.
-          setStep(draft.squad_name ? "review" : "squad");
-        } else if (draft.result_code === "DRAFT_EXPIRED") {
-          setNotice(
-            "Your previous registration draft expired. Please create a new draft."
-          );
-        } else if (
-          draft.result_code === "ACCOUNT_ALREADY_LINKED"
-        ) {
-          await supabase.auth.signOut({ scope: "local" });
-          navigate("/login", { replace: true });
-        } else if (
-          draft.result_code !== "DRAFT_NOT_FOUND"
-        ) {
-          setError(draft.result_code);
+        switch (draft.result_code) {
+          case "DRAFT_FOUND": {
+            setUsername(draft.username ?? "");
+            setManagerName(draft.manager_name ?? "");
+            setWhatsappNumber(draft.whatsapp_number ?? "");
+            setDateOfBirth(draft.date_of_birth ?? "");
+            setSquadName(draft.squad_name ?? "");
+
+            // Continue from the first incomplete stage.
+            setStep(draft.squad_name ? "review" : "squad");
+            break;
+          }
+
+          case "DRAFT_NOT_FOUND": {
+            setStep("details");
+            break;
+          }
+
+          case "DRAFT_EXPIRED": {
+            setStep("details");
+            setUsername("");
+            setManagerName("");
+            setWhatsappNumber("");
+            setDateOfBirth("");
+            setSquadName("");
+            setNotice(
+              "Your previous registration draft expired. Start a new registration to continue."
+            );
+            break;
+          }
+
+          case "ACCOUNT_ALREADY_LINKED": {
+            await signOutPlayer();
+            navigate("/login", { replace: true });
+            return;
+          }
+
+          case "ACCOUNT_LINK_DISABLED": {
+            await signOutPlayer();
+            navigate("/login", { replace: true });
+            return;
+          }
+
+          default: {
+            setError(getRegistrationMessage(draft.result_code));
+          }
         }
       } catch {
         if (!cancelled) {
-          setError("Could not retrieve your registration draft.");
+          setError("Could not restore your registration. Please retry.");
         }
       } finally {
-        if (!cancelled) setDraftLoaded(true);
+        if (!cancelled) {
+          setDraftLoaded(true);
+        }
       }
     }
 
@@ -110,11 +201,12 @@ export default function RegisterPage() {
 
   // Check username availability while the player types.
   useEffect(() => {
-    if (
-      status !== "registration_pending" ||
-      !/^[A-Za-z0-9_]{4,20}$/.test(username)
-    ) {
-      setUsernameAvailable(null);
+    if (status !== "registration_pending") return;
+
+    setUsernameAvailable(null);
+    setUsernameCheckError("");
+
+    if (!USERNAME_PATTERN.test(username)) {
       setUsernameChecking(false);
       return;
     }
@@ -125,22 +217,34 @@ export default function RegisterPage() {
       setUsernameChecking(true);
 
       try {
-        const result = await checkUsernameAvailability(username);
+        const result = await checkUsernameAvailability(username.trim());
 
-        if (!cancelled) {
-          setUsernameAvailable(
-            result?.result_code === "USERNAME_AVAILABLE" &&
-              result?.available === true
+        if (cancelled) return;
+
+        if (result?.result_code === "USERNAME_AVAILABLE" && result.available === true) {
+          setUsernameAvailable(true);
+        } else {
+          setUsernameAvailable(false);
+        }
+
+        if (result?.result_code === "USERNAME_TAKEN") {
+          setUsernameCheckError("This username is already reserved or in use.");
+        } else if (result?.result_code !== "USERNAME_AVAILABLE") {
+          setUsernameCheckError(
+            getRegistrationMessage(result?.result_code ?? "USERNAME_CHECK_FAILED")
           );
         }
       } catch {
         if (!cancelled) {
           setUsernameAvailable(null);
+          setUsernameCheckError("Could not verify username availability.");
         }
       } finally {
-        if (!cancelled) setUsernameChecking(false);
+        if (!cancelled) {
+          setUsernameChecking(false);
+        }
       }
-    }, 500);
+    }, 450);
 
     return () => {
       cancelled = true;
@@ -167,22 +271,51 @@ export default function RegisterPage() {
     );
   }
 
+  // Require a configured public CAPTCHA site key.
   if (!siteKey) {
     return (
       <main className="registration-page">
         <section className="registration-card">
+          <div className="registration-brand">
+            <ShieldCheck size={28} />
+            <span>KICKOFF PLAYER ARENA</span>
+          </div>
+
           <h1>Registration unavailable</h1>
-          <p>Security verification is not configured.</p>
+          <p className="registration-description">
+            Security verification is not configured. Contact the platform administrator.
+          </p>
         </section>
       </main>
     );
   }
 
-  // Reset single-use CAPTCHA tokens after each request.
+  // Start a fresh CAPTCHA challenge.
   function resetCaptcha() {
     setCaptchaToken("");
     setCaptchaReady(false);
+    setCaptchaError("");
     setCaptchaKey((current) => current + 1);
+  }
+
+  function handleCaptchaLoad() {
+    setCaptchaReady(true);
+    setCaptchaError("");
+  }
+
+  function handleCaptchaSuccess(token: string) {
+    setCaptchaToken(token);
+    setCaptchaError("");
+  }
+
+  function handleCaptchaExpire() {
+    setCaptchaToken("");
+    setCaptchaError("Verification expired. Complete the check again.");
+  }
+
+  function handleCaptchaFailure() {
+    setCaptchaToken("");
+    setCaptchaError("Verification failed. Check your connection and retry.");
   }
 
   // Create the Supabase Auth account.
@@ -190,11 +323,6 @@ export default function RegisterPage() {
     event.preventDefault();
 
     if (submitting || !captchaToken) return;
-
-    if (password.length < 8) {
-      setError("Password must contain at least 8 characters.");
-      return;
-    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -207,7 +335,7 @@ export default function RegisterPage() {
 
     try {
       const { data, error: signupError } = await signUpPlayer(
-        email,
+        signupEmail.trim(),
         password,
         captchaToken
       );
@@ -220,8 +348,8 @@ export default function RegisterPage() {
       }
 
       if (data.session) {
-        // AuthContext will recognize the unlinked registration session.
-        setNotice("Your account is ready. Continue with registration.");
+        // AuthContext will resolve the unlinked account.
+        setNotice("Your account is ready. Continue with player registration.");
       } else {
         setEmailConfirmationSent(true);
         setNotice(
@@ -238,7 +366,7 @@ export default function RegisterPage() {
 
   // Resend the signup confirmation email.
   async function handleResendConfirmation() {
-    if (!captchaToken || submitting) return;
+    if (!captchaToken || submitting || !signupEmail.trim()) return;
 
     setSubmitting(true);
     setError("");
@@ -246,13 +374,13 @@ export default function RegisterPage() {
 
     try {
       const { error: resendError } = await resendPlayerConfirmation(
-        email,
+        signupEmail.trim(),
         captchaToken
       );
 
       if (resendError) {
         setError(
-          "The confirmation email could not be resent. You may already have a confirmed account; try signing in."
+          "The confirmation request could not be completed. If your account is already confirmed, sign in instead."
         );
       } else {
         setNotice(
@@ -267,11 +395,11 @@ export default function RegisterPage() {
     }
   }
 
-  // Save the player information and reserve the username.
+  // Save the player details and reserve the username.
   async function handleSaveDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (submitting || usernameAvailable !== true) return;
+    if (submitting || usernameAvailable !== true || !email) return;
 
     setSubmitting(true);
     setError("");
@@ -287,14 +415,14 @@ export default function RegisterPage() {
       });
 
       if (!result?.success) {
-        setError(result?.result_code ?? "DRAFT_SAVE_FAILED");
+        setError(getRegistrationMessage(result?.result_code ?? "DRAFT_SAVE_FAILED"));
         return;
       }
 
       setStep("squad");
       setNotice("Your details and username reservation have been saved.");
     } catch {
-      setError("Could not save your registration details.");
+      setError("Could not save your registration details. Please retry.");
     } finally {
       setSubmitting(false);
     }
@@ -304,7 +432,7 @@ export default function RegisterPage() {
   async function handleSaveSquad(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (submitting || !squadName.trim()) return;
+    if (submitting || !squadName.trim() || !email) return;
 
     setSubmitting(true);
     setError("");
@@ -320,14 +448,14 @@ export default function RegisterPage() {
       });
 
       if (!result?.success) {
-        setError(result?.result_code ?? "DRAFT_SAVE_FAILED");
+        setError(getRegistrationMessage(result?.result_code ?? "DRAFT_SAVE_FAILED"));
         return;
       }
 
       setStep("review");
-      setNotice("Your squad name has been saved.");
+      setNotice("Your initial squad name has been saved.");
     } catch {
-      setError("Could not save your squad name.");
+      setError("Could not save your squad name. Please retry.");
     } finally {
       setSubmitting(false);
     }
@@ -345,13 +473,12 @@ export default function RegisterPage() {
       const result = await finalizePlayerRegistration();
 
       if (!result) {
-        setError("Registration could not be completed.");
+        setError("Registration could not be completed. Please retry.");
         return;
       }
 
       if (result.result_code === "ACCOUNT_ALREADY_LINKED") {
-        // A previous attempt may already have completed.
-        await supabase.auth.signOut({ scope: "local" });
+        await signOutPlayer();
         navigate("/login", { replace: true });
         return;
       }
@@ -360,22 +487,22 @@ export default function RegisterPage() {
         !result.success ||
         result.result_code !== "PLAYER_REGISTRATION_COMPLETED"
       ) {
-        setError(result.result_code);
+        setError(getRegistrationMessage(result.result_code));
         return;
       }
 
-      // Reload so AuthContext resolves the newly created identity.
+      // Reload so AuthContext resolves the newly created player identity.
       window.location.assign("/");
     } catch {
       setError(
-        "Registration could not be completed. Your draft has been retained; please retry."
+        "Registration could not be completed. Your saved draft has been retained; please retry."
       );
     } finally {
       setSubmitting(false);
     }
   }
 
-  // Render the Auth signup and confirmation stage.
+  // Show account creation and email confirmation to anonymous visitors.
   if (status === "anonymous") {
     return (
       <main className="registration-page">
@@ -386,49 +513,60 @@ export default function RegisterPage() {
           </div>
 
           <h1>Create your player account</h1>
+
           <p className="registration-description">
-            Create your login credentials. You must confirm your
-            email before entering your player details.
+            Create your login credentials. Your email must be confirmed before
+            you can enter your player details.
           </p>
 
-          {error && <div className="registration-error">{error}</div>}
-          {notice && <div className="registration-notice">{notice}</div>}
+          {error && (
+            <div className="registration-error" role="alert">
+              {error}
+            </div>
+          )}
+
+          {notice && (
+            <div className="registration-notice" role="status">
+              {notice}
+            </div>
+          )}
 
           {!emailConfirmationSent ? (
             <form onSubmit={handleSignup} className="registration-form">
-              <label>
+              <label htmlFor="registration-email">
                 Email address
                 <input
+                  id="registration-email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={signupEmail}
+                  onChange={(event) => setSignupEmail(event.target.value)}
                   autoComplete="email"
                   required
                   disabled={submitting}
                 />
               </label>
 
-              <label>
+              <label htmlFor="registration-password">
                 Password
                 <input
+                  id="registration-password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(event) => setPassword(event.target.value)}
                   autoComplete="new-password"
-                  minLength={8}
                   required
                   disabled={submitting}
                 />
               </label>
 
-              <label>
+              <label htmlFor="registration-confirm-password">
                 Confirm password
                 <input
+                  id="registration-confirm-password"
                   type="password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
                   autoComplete="new-password"
-                  minLength={8}
                   required
                   disabled={submitting}
                 />
@@ -437,9 +575,13 @@ export default function RegisterPage() {
               <Captcha
                 siteKey={siteKey}
                 captchaKey={captchaKey}
-                onReady={() => setCaptchaReady(true)}
-                onSuccess={setCaptchaToken}
-                onReset={resetCaptcha}
+                captchaReady={captchaReady}
+                captchaError={captchaError}
+                onLoad={handleCaptchaLoad}
+                onSuccess={handleCaptchaSuccess}
+                onExpire={handleCaptchaExpire}
+                onFailure={handleCaptchaFailure}
+                onRetry={resetCaptcha}
               />
 
               <button
@@ -451,21 +593,26 @@ export default function RegisterPage() {
               </button>
             </form>
           ) : (
-            <>
-              <div className="registration-confirmation">
-                <h2>Confirm your email</h2>
-                <p>
-                  Open the confirmation link sent to <strong>{email}</strong>.
-                  You will return here to continue registration.
-                </p>
-              </div>
+            <div className="registration-confirmation">
+              <CheckCircle2 size={28} />
+              <h2>Confirm your email</h2>
+
+              <p>
+                Open the confirmation link sent to{" "}
+                <strong>{signupEmail}</strong>. You will return to this
+                registration page after confirming.
+              </p>
 
               <Captcha
                 siteKey={siteKey}
                 captchaKey={captchaKey}
-                onReady={() => setCaptchaReady(true)}
-                onSuccess={setCaptchaToken}
-                onReset={resetCaptcha}
+                captchaReady={captchaReady}
+                captchaError={captchaError}
+                onLoad={handleCaptchaLoad}
+                onSuccess={handleCaptchaSuccess}
+                onExpire={handleCaptchaExpire}
+                onFailure={handleCaptchaFailure}
+                onRetry={resetCaptcha}
               />
 
               <button
@@ -476,18 +623,18 @@ export default function RegisterPage() {
               >
                 {submitting ? "Sending..." : "Resend confirmation"}
               </button>
-            </>
+            </div>
           )}
 
           <p className="registration-footer">
-            Already registered? <a href="/login">Sign in</a>
+            Already registered? <Link to="/login">Sign in</Link>
           </p>
         </section>
       </main>
     );
   }
 
-  // Only confirmed, unlinked Auth users can access draft operations.
+  // Only confirmed, unlinked Auth users may access registration drafts.
   if (status !== "registration_pending") {
     return <Navigate to="/login" replace />;
   }
@@ -512,65 +659,89 @@ export default function RegisterPage() {
         <h1>Player registration</h1>
 
         <p className="registration-description">
-          Complete your player details to create your KickOff account.
+          Complete your details to create your permanent KickOff player identity.
         </p>
 
-        {error && <div className="registration-error">{error}</div>}
-        {notice && <div className="registration-notice">{notice}</div>}
+        {error && (
+          <div className="registration-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        {notice && (
+          <div className="registration-notice" role="status">
+            {notice}
+          </div>
+        )}
+
+        <div className="registration-email">
+          <span>Verified email address</span>
+          <strong>{email || "Email unavailable"}</strong>
+          <small>This address is linked to your login and cannot be changed here.</small>
+        </div>
 
         {step === "details" && (
           <form onSubmit={handleSaveDetails} className="registration-form">
-            <label>
+            <label htmlFor="registration-username">
               Username
               <input
+                id="registration-username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(event) => setUsername(event.target.value)}
                 minLength={4}
                 maxLength={20}
                 pattern="[A-Za-z0-9_]{4,20}"
                 autoComplete="username"
                 required
+                disabled={submitting}
               />
-              <small>
+
+              <small aria-live="polite">
                 {usernameChecking
                   ? "Checking availability..."
                   : usernameAvailable === true
                     ? "Username available"
                     : usernameAvailable === false
-                      ? "Username is unavailable"
-                      : "4–20 letters, numbers or underscores"}
+                      ? usernameCheckError || "Username unavailable"
+                      : usernameCheckError || "4–20 letters, numbers or underscores"}
               </small>
             </label>
 
-            <label>
+            <label htmlFor="registration-manager-name">
               Manager name
               <input
+                id="registration-manager-name"
                 value={managerName}
-                onChange={(e) => setManagerName(e.target.value)}
+                onChange={(event) => setManagerName(event.target.value)}
                 autoComplete="name"
                 required
+                disabled={submitting}
               />
             </label>
 
-            <label>
+            <label htmlFor="registration-whatsapp">
               WhatsApp number
               <input
+                id="registration-whatsapp"
                 type="tel"
                 value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
+                onChange={(event) => setWhatsappNumber(event.target.value)}
                 autoComplete="tel"
                 required
+                disabled={submitting}
               />
             </label>
 
-            <label>
+            <label htmlFor="registration-dob">
               Date of birth
               <input
+                id="registration-dob"
                 type="date"
                 value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-                max={new Date().toISOString().slice(0, 10)}
+                onChange={(event) => setDateOfBirth(event.target.value)}
+                max={getAdultDateLimit()}
                 required
+                disabled={submitting}
               />
               <small>Players must be at least 18 years old.</small>
             </label>
@@ -581,7 +752,12 @@ export default function RegisterPage() {
               disabled={
                 submitting ||
                 usernameAvailable !== true ||
-                usernameChecking
+                usernameChecking ||
+                !managerName.trim() ||
+                !whatsappNumber.trim() ||
+                !dateOfBirth ||
+                dateOfBirth > getAdultDateLimit() ||
+                !email
               }
             >
               {submitting ? "Saving details..." : "Save and continue"}
@@ -591,14 +767,16 @@ export default function RegisterPage() {
 
         {step === "squad" && (
           <form onSubmit={handleSaveSquad} className="registration-form">
-            <label>
+            <label htmlFor="registration-squad-name">
               Initial squad name
               <input
+                id="registration-squad-name"
                 value={squadName}
-                onChange={(e) => setSquadName(e.target.value)}
-                maxLength={60}
+                onChange={(event) => setSquadName(event.target.value)}
                 required
+                disabled={submitting}
               />
+              <small>You can add other squads after registration.</small>
             </label>
 
             <button
@@ -612,6 +790,7 @@ export default function RegisterPage() {
             <button
               className="registration-secondary"
               type="button"
+              disabled={submitting}
               onClick={() => setStep("details")}
             >
               Back to player details
@@ -623,6 +802,7 @@ export default function RegisterPage() {
           <div className="registration-review">
             <h2>Review your details</h2>
 
+            <ReviewRow label="Verified email" value={email} />
             <ReviewRow label="Username" value={username} />
             <ReviewRow label="Manager name" value={managerName} />
             <ReviewRow label="WhatsApp" value={whatsappNumber} />
@@ -630,15 +810,14 @@ export default function RegisterPage() {
             <ReviewRow label="Initial squad" value={squadName} />
 
             <p className="registration-description">
-              Confirm to create your permanent player identity and
-              initial squad.
+              Confirm to create your permanent player identity and initial squad.
             </p>
 
             <button
               className="registration-submit"
               type="button"
               disabled={submitting}
-              onClick={handleFinalize}
+              onClick={() => void handleFinalize()}
             >
               {submitting ? "Completing registration..." : "Complete registration"}
             </button>
@@ -646,48 +825,87 @@ export default function RegisterPage() {
             <button
               className="registration-secondary"
               type="button"
+              disabled={submitting}
               onClick={() => setStep("squad")}
             >
               Back to squad name
             </button>
           </div>
         )}
+
+        <p className="registration-footer">
+          Registration information is saved securely to your account draft.
+        </p>
       </section>
     </main>
   );
 }
 
-// Keep the CAPTCHA widget isolated from registration form state.
+// Isolate the Turnstile widget and its status feedback.
 function Captcha({
   siteKey,
   captchaKey,
-  onReady,
+  captchaReady,
+  captchaError,
+  onLoad,
   onSuccess,
-  onReset
+  onExpire,
+  onFailure,
+  onRetry
 }: {
   siteKey: string;
   captchaKey: number;
-  onReady: () => void;
+  captchaReady: boolean;
+  captchaError: string;
+  onLoad: () => void;
   onSuccess: (token: string) => void;
-  onReset: () => void;
+  onExpire: () => void;
+  onFailure: () => void;
+  onRetry: () => void;
 }) {
   return (
     <div className="registration-captcha">
+      <div className="registration-captcha-status" aria-live="polite">
+        {captchaError ? (
+          <div className="registration-error">
+            <p>{captchaError}</p>
+            <button
+              type="button"
+              className="registration-secondary"
+              onClick={onRetry}
+            >
+              <RefreshCw size={15} />
+              Retry verification
+            </button>
+          </div>
+        ) : !captchaReady ? (
+          <p>
+            <LoaderCircle size={16} className="loading-spinner" />
+            Preparing security verification...
+          </p>
+        ) : (
+          <p>Complete the security check below.</p>
+        )}
+      </div>
+
       <Turnstile
         key={captchaKey}
         siteKey={siteKey}
-        onWidgetLoad={onReady}
+        onWidgetLoad={onLoad}
         onSuccess={onSuccess}
-        onExpire={onReset}
-        onError={onReset}
-        onUnsupported={onReset}
-        options={{ theme: "dark", language: "en" }}
+        onExpire={onExpire}
+        onError={onFailure}
+        onUnsupported={onFailure}
+        options={{
+          theme: "dark",
+          language: "en"
+        }}
       />
     </div>
   );
 }
 
-// Display one review field.
+// Display one read-only review field.
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="registration-review-row">
