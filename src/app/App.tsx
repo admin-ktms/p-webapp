@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PlayerShell from "../layouts/PlayerShell";
 import PlaceholderPage from "../pages/PlaceholderPage";
 import LoginPage from "../pages/LoginPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ProtectedRoute from "../components/ProtectedRoutes";
 
 function App() {
@@ -11,6 +12,11 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPasswordPage />}
+        />
 
         <Route
           element={
