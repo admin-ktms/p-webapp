@@ -67,26 +67,26 @@ function TournamentDirectoryPage() {
 
   return (
     <section className="tournaments-page">
-      <Link
-        to="/tournaments"
-        className="tournament-back-link"
-      >
-        <ArrowLeft size={17} />
-        <span>Tournaments</span>
-      </Link>
+      <nav className="tournament-directory-nav" aria-label="Tournament navigation">
+        <Link
+          to="/tournaments"
+          className="tournament-back-link"
+        >
+          <ArrowLeft size={16} />
+          <span>Tournaments</span>
+        </Link>
+      </nav>
 
       <header className="tournament-directory-header">
-        <p className="tournaments-eyebrow">
-          TOURNAMENT DIRECTORY
-        </p>
+        <div className="tournament-directory-title-row">
+          <h1>{pageTitle}</h1>
 
-        <h1>{pageTitle}</h1>
-
-        {!loading && (
-          <p className="tournaments-subtitle">
-            {total} {total === 1 ? "tournament" : "tournaments"}
-          </p>
-        )}
+          {!loading && (
+            <span className="tournament-count-indicator">
+              {total} {total === 1 ? "TOURNAMENT" : "TOURNAMENTS"}
+            </span>
+          )}
+        </div>
       </header>
 
       {loading && (
