@@ -1,6 +1,5 @@
-import {
-  useMemo
-} from "react";
+
+import { useEffect, useState } from "react";
 
 import {
   ArrowLeft,
@@ -14,7 +13,6 @@ import {
   useLocation
 } from "react-router-dom";
 
-import { useEffect, useState } from "react";
 import { chatService } from "../../services/chat.service";
 import { useAuth } from "../../app/AuthContext";
 
@@ -24,8 +22,10 @@ import MessageTimeline from "../../components/chat/MessageTimeline";
 import MessageComposer from "../../components/chat/MessageComposer";
 
 import type {
-  ChatConversation
+  ChatConversation,
+  ChatInboxCursor
 } from "../../types/chat.types";
+
 
 function getConversationTitle(
   conversation: ChatConversation | null
@@ -56,6 +56,7 @@ function getConversationTitle(
   );
 }
 
+
 function getConversationCategory(
   conversation: ChatConversation | null
 ): string {
@@ -80,8 +81,12 @@ function getConversationCategory(
 
     case "PLAYER":
       return "PLAYER CHAT";
+
+    default:
+      return "MESSAGES";
   }
 }
+
 
 function ConversationPage() {
   const { conversationId } = useParams();
@@ -94,67 +99,64 @@ function ConversationPage() {
     location.state?.conversation as
       | ChatConversation
       | undefined;
-  
+
   const [resolvedConversation, setResolvedConversation] =
     useState<ChatConversation | null>(
       stateConversation?.conversation_id === conversationId
         ? stateConversation
         : null
     );
-  
+
   useEffect(() => {
     let cancelled = false;
-  
+
     if (
       stateConversation?.conversation_id === conversationId
     ) {
       setResolvedConversation(stateConversation);
       return;
     }
-  
+
     setResolvedConversation(null);
-  
+
     async function resolveConversation() {
-      let cursor = null;
-  
+      let cursor: ChatInboxCursor | null = null;
+
       try {
         while (!cancelled) {
           const response = await chatService.listInbox({
             limit: 99,
             cursor
           });
-  
+
           const match = response.conversations.find(
             (item) => item.conversation_id === conversationId
           );
-  
+
           if (match) {
             setResolvedConversation(match);
             return;
           }
-  
+
           if (!response.has_more || !response.next_cursor) {
             return;
           }
-  
+
           cursor = response.next_cursor;
         }
       } catch {
-        // Keep the conversation unavailable until resolution succeeds.
+        // Keep conversation unavailable until resolution succeeds.
       }
     }
-  
+
     void resolveConversation();
-  
+
     return () => {
       cancelled = true;
     };
   }, [conversationId, stateConversation]);
-  
-  const conversation = resolvedConversation;
 
-    return null;
-  }, [conversationId, stateConversation]);
+  const conversation = resolvedConversation;
 
   const {
     messages,
@@ -174,7 +176,6 @@ function ConversationPage() {
   }
 
   const title = getConversationTitle(conversation);
-
   const category = getConversationCategory(conversation);
 
   const isActive =
