@@ -1,6 +1,7 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { callApi } from "../lib/api";
 
 const identityDb = supabase.schema("identity");
 
@@ -100,17 +101,13 @@ export async function updatePlayerPassword(password: string) {
 
 // Resolve the authenticated user to a KTMS identity.
 export async function resolvePlayerIdentity() {
-  const { data, error } = await identityDb.rpc("identity_resolver");
-
-  if (error) throw error;
-
-  const identity = Array.isArray(data) ? data[0] : data;
+  const identity = await callApi<PlayerIdentity>("auth.identity.resolve");
 
   if (!identity) {
     throw new Error("Player identity could not be resolved.");
   }
 
-  return identity as PlayerIdentity;
+  return identity;
 }
 
 // Validate identity and determine player access.
