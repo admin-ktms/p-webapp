@@ -110,12 +110,28 @@ export async function resolvePlayerIdentity() {
   return identity;
 }
 
+// Read the signed-in player's own username (RLS limits this to their own row).
+// Display only: a failure here must never block sign-in.
+async function fetchOwnUsername(authUserId: string): Promise<string | null> {
+  const { data, error } = await identityDb
+    .from("account_link")
+    .select("username")
+    .eq("auth_user_id", authUserId)
+    .eq("account_type", "Player")
+    .maybeSingle();
+
+  if (error) return null;
+
+  return data?.username ?? null;
+}
+
 // Validate identity and determine player access.
 export async function validatePlayerSession(
   session: Session
 ): Promise<{
   identity: PlayerIdentity;
   accessLevel: PlayerAccessLevel;
+  username: string | null;
 }> {
   const identity = await resolvePlayerIdentity();
 
@@ -142,14 +158,18 @@ export async function validatePlayerSession(
   }
 
   if (identity.account_status === "Active") {
-    return { identity, accessLevel: "full" };
+    return {
+      identity,
+      accessLevel: "full",
+      username: await fetchOwnUsername(session.user.id)
+    };
   }
 
   if (
     identity.account_status === "Suspended" ||
     identity.account_status === "Banned"
   ) {
-    return { identity, accessLevel: "profile_only" };
+    return { identity, accessLevel: "profile_only", username: await fetchOwnUsername(session.user.id) };
   }
 
   throw new Error("Your player account status is not recognized.");
