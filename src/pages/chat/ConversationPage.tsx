@@ -17,7 +17,7 @@ import { chatService } from "../../services/chat.service";
 import { useAuth } from "../../app/AuthContext";
 
 import { useConversationMessages } from "../../hooks/chat/useConversationMessages";
-import { useChatRealtime } from "../../hooks/chat/useChatRealtime";
+import { useChatRealtime } from "../../hooks/chat/useRealtime";
 
 import MessageTimeline from "../../components/chat/MessageTimeline";
 import MessageComposer from "../../components/chat/MessageComposer";
@@ -174,15 +174,15 @@ function ConversationPage() {
     refresh
   } = useConversationMessages(conversationId ?? "");
 
-  if (!conversationId) {
-    return null;
-  }
-
-  useChatRealtime(
-    identity?.player_id ?? null,
-    conversationId,
-    refresh
-  );
+    useChatRealtime(
+      identity?.player_id ?? null,
+      conversationId ?? "",
+      refresh
+    );
+  
+    if (!conversationId) {
+      return null;
+    }
   
   const title = getConversationTitle(conversation);
   const category = getConversationCategory(conversation);
