@@ -14,6 +14,8 @@ import {
   useLocation
 } from "react-router-dom";
 
+import { useEffect, useState } from "react";
+import { chatService } from "../../services/chat.service";
 import { useAuth } from "../../app/AuthContext";
 
 import { useConversationMessages } from "../../hooks/chat/useConversationMessages";
@@ -92,13 +94,64 @@ function ConversationPage() {
     location.state?.conversation as
       | ChatConversation
       | undefined;
-
-  const conversation = useMemo(() => {
+  
+  const [resolvedConversation, setResolvedConversation] =
+    useState<ChatConversation | null>(
+      stateConversation?.conversation_id === conversationId
+        ? stateConversation
+        : null
+    );
+  
+  useEffect(() => {
+    let cancelled = false;
+  
     if (
       stateConversation?.conversation_id === conversationId
     ) {
-      return stateConversation;
+      setResolvedConversation(stateConversation);
+      return;
     }
+  
+    setResolvedConversation(null);
+  
+    async function resolveConversation() {
+      let cursor = null;
+  
+      try {
+        while (!cancelled) {
+          const response = await chatService.listInbox({
+            limit: 99,
+            cursor
+          });
+  
+          const match = response.conversations.find(
+            (item) => item.conversation_id === conversationId
+          );
+  
+          if (match) {
+            setResolvedConversation(match);
+            return;
+          }
+  
+          if (!response.has_more || !response.next_cursor) {
+            return;
+          }
+  
+          cursor = response.next_cursor;
+        }
+      } catch {
+        // Keep the conversation unavailable until resolution succeeds.
+      }
+    }
+  
+    void resolveConversation();
+  
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationId, stateConversation]);
+  
+  const conversation = resolvedConversation;
 
     return null;
   }, [conversationId, stateConversation]);
