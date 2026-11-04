@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import PlayerShell from "../layouts/PlayerShell";
@@ -11,6 +10,10 @@ import ProtectedRoute from "../components/ProtectedRoutes";
 
 import ChatsPage from "../pages/chat/ChatsPage";
 import ConversationPage from "../pages/chat/ConversationPage";
+
+import TournamentsPage from "../pages/tournament/TournamentsPage";
+import TournamentDirectoryPage from "../pages/tournament/TournamentDirectoryPage";
+import PlaceholderPage from "../pages/PlaceholderPage";
 
 function App() {
   return (
@@ -39,7 +42,22 @@ function App() {
 
           <Route
             path="tournaments"
-            element={<PlaceholderPage title="Tournaments" />}
+            element={<TournamentsPage />}
+          />
+
+          <Route
+            path="tournaments/all"
+            element={<TournamentDirectoryPage />}
+          />
+
+          <Route
+            path="tournaments/type/:typeId"
+            element={<TournamentDirectoryPage />}
+          />
+
+          <Route
+            path="tournaments/register/:tournamentId"
+            element={<PlaceholderPage />}
           />
 
           <Route
