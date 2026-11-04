@@ -148,6 +148,7 @@ function ConversationRow({
       to={`/chats/${encodeURIComponent(
         conversation.conversation_id
       )}`}
+      state={{ conversation }}
       className="flex items-center gap-3 border-b border-white/5 px-4 py-4 transition hover:bg-white/[0.035]"
       aria-label={`Open conversation with ${title}`}
     >
