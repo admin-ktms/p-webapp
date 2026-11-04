@@ -61,9 +61,11 @@ function getCategory(
         : "Player Support";
 
     case "PLAYER":
-      return conversation.counterpart_squad_name ??
+      return (
+        conversation.counterpart_squad_name ??
         conversation.counterpart_player_name ??
-        "Player conversation";
+        "Player conversation"
+      );
   }
 }
 
@@ -79,12 +81,16 @@ function getPreview(
   }
 
   if (conversation.latest_message_type === "SYSTEM_EVENT") {
-    return conversation.latest_message_body ??
-      "A system update occurred.";
+    return (
+      conversation.latest_message_body ??
+      "A system update occurred."
+    );
   }
 
-  return conversation.latest_message_body ??
-    "Message unavailable.";
+  return (
+    conversation.latest_message_body ??
+    "Message unavailable."
+  );
 }
 
 function formatTimestamp(
@@ -98,10 +104,7 @@ function formatTimestamp(
 
   const now = new Date();
 
-  const isToday =
-    date.toDateString() === now.toDateString();
-
-  if (isToday) {
+  if (date.toDateString() === now.toDateString()) {
     return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit"
@@ -127,7 +130,8 @@ function ConversationRow({
   const title = getTitle(conversation);
   const category = getCategory(conversation);
 
-  const unreadCount = Number(conversation.unread_count) || 0;
+  const unreadCount =
+    Number(conversation.unread_count) || 0;
 
   const preview = getPreview(conversation);
 
@@ -141,7 +145,9 @@ function ConversationRow({
 
   return (
     <Link
-      to={`/chats/${encodeURIComponent(conversation.conversation_id)}`}
+      to={`/chats/${encodeURIComponent(
+        conversation.conversation_id
+      )}`}
       className="flex items-center gap-3 border-b border-white/5 px-4 py-4 transition hover:bg-white/[0.035]"
       aria-label={`Open conversation with ${title}`}
     >
@@ -192,9 +198,6 @@ function ConversationRow({
           </span>
         )}
       </div>
-
-      {conversation.latest_message_sender_type === "PLAYER" &&
-        conversation.latest_message_id }
     </Link>
   );
 }
