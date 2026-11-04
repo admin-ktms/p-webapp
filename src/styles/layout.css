@@ -163,6 +163,15 @@
   border-radius: 50%;
 }
 
+.sidebar-username {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  letter-spacing: 0.4px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Application header */
 .app-header {
   position: sticky;
