@@ -56,7 +56,7 @@ function App() {
 
           <Route
             path="tournaments/register/:tournamentId"
-            element={<PlaceholderPage />}
+            element={<PlaceholderPage title="Registration Request" />}
           />
 
           <Route
