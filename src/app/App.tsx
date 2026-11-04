@@ -9,16 +9,16 @@ import LoginPage from "../pages/LoginPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ProtectedRoute from "../components/ProtectedRoutes";
 
-
+import ChatsPage from "../pages/chat/ChatsPage";
 
 function App() {
   return (
-    <BrowserRouter> 
+    <BrowserRouter>
       <Routes>
-
         <Route path="/register" element={<RegisterPage />} />
+
         <Route path="/login" element={<LoginPage />} />
-        
+
         <Route
           path="/reset-password"
           element={<ResetPasswordPage />}
@@ -31,7 +31,10 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<PlaceholderPage title="Home" />} />
+          <Route
+            index
+            element={<PlaceholderPage title="Home" />}
+          />
 
           <Route
             path="tournaments"
@@ -40,7 +43,7 @@ function App() {
 
           <Route
             path="chats"
-            element={<PlaceholderPage title="Chats" />}
+            element={<ChatsPage />}
           />
 
           <Route
