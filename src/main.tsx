@@ -21,6 +21,7 @@ import "./styles/accessibility.css";
 import "./styles/pages/placeholder.css";
 import "./styles/pages/login.css";
 import "./styles/pages/register.css";
+import "./styles/pages/tournaments.css";
 
 const rootElement = document.getElementById("root");
 
