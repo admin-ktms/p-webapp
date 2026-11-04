@@ -31,7 +31,7 @@ interface AuthState {
   status: AuthStatus;
   session: Session | null;
   identity: PlayerIdentity | null;
-  accessLevel: PlayerAccessLevel | null;
+  accessLevel: PlayerAccessLevel | null; username: string | null;
   message: string | null;
 }
 
@@ -49,7 +49,7 @@ const initialState: AuthState = {
   status: "loading",
   session: null,
   identity: null,
-  accessLevel: null,
+  accessLevel: null, username: null,
   message: null
 };
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           status: "authorized",
           session,
           identity: result.identity,
-          accessLevel: result.accessLevel,
+          accessLevel: result.accessLevel, username: result.username,
           message: null
         });
 
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             status: "registration_pending",
             session,
             identity: null,
-            accessLevel: null,
+            accessLevel: null, username: null,
             message: null
           });
 
