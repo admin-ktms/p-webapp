@@ -20,7 +20,7 @@ export const chatService = {
   ): Promise<ChatInboxResponse> {
     return callApi<ChatInboxResponse>(
       "chat.inbox.list",
-      input
+      { ...input }
     );
   },
 
@@ -29,7 +29,7 @@ export const chatService = {
   ): Promise<ChatMessagesResponse> {
     return callApi<ChatMessagesResponse>(
       "chat.conversation.messages.list",
-      input
+      { ...input }
     );
   },
 
@@ -38,7 +38,7 @@ export const chatService = {
   ): Promise<SendChatMessageResponse> {
     return callApi<SendChatMessageResponse>(
       "chat.message.send",
-      input
+      { ...input }
     );
   },
 
@@ -47,7 +47,7 @@ export const chatService = {
   ): Promise<MarkConversationReadResponse> {
     return callApi<MarkConversationReadResponse>(
       "chat.conversation.read",
-      input
+      { ...input }
     );
   },
 
@@ -56,7 +56,7 @@ export const chatService = {
   ): Promise<CreateSupportCaseResponse> {
     return callApi<CreateSupportCaseResponse>(
       "chat.support.create",
-      input
+      { ...input }
     );
   }
 };
