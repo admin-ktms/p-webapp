@@ -102,7 +102,8 @@ function ConversationPage() {
 
   const [resolvedConversation, setResolvedConversation] =
     useState<ChatConversation | null>(
-      stateConversation?.conversation_id === conversationId
+      stateConversation &&
+      stateConversation.conversation_id === conversationId
         ? stateConversation
         : null
     );
@@ -111,7 +112,8 @@ function ConversationPage() {
     let cancelled = false;
 
     if (
-      stateConversation?.conversation_id === conversationId
+      stateConversation &&
+      stateConversation.conversation_id === conversationId
     ) {
       setResolvedConversation(stateConversation);
       return;
