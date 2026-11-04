@@ -1,6 +1,5 @@
 
 import { Link } from "react-router-dom";
-import { CheckCheck } from "lucide-react";
 
 import ConversationAvatar from "./ConversationAvatar";
 
@@ -195,13 +194,7 @@ function ConversationRow({
       </div>
 
       {conversation.latest_message_sender_type === "PLAYER" &&
-        conversation.latest_message_id && (
-          <CheckCheck
-            size={13}
-            className="shrink-0 text-neutral-600"
-            aria-label="Sent by a player"
-          />
-        )}
+        conversation.latest_message_id }
     </Link>
   );
 }
