@@ -10,6 +10,7 @@ import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ProtectedRoute from "../components/ProtectedRoutes";
 
 import ChatsPage from "../pages/chat/ChatsPage";
+import ConversationPage from "../pages/chat/ConversationPage";
 
 function App() {
   return (
@@ -44,6 +45,11 @@ function App() {
           <Route
             path="chats"
             element={<ChatsPage />}
+          />
+
+          <Route
+            path="chats/:conversationId"
+            element={<ConversationPage />}
           />
 
           <Route
