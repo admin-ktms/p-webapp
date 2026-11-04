@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Trophy } from "lucide-react";
 
 import TournamentTypeCard from "../../components/tournament/TournamentTypeCard";
 import TournamentLoading from "../../components/tournament/TournamentLoading";
@@ -17,18 +18,13 @@ function TournamentsPage() {
   return (
     <section className="tournaments-page">
       <header className="tournaments-page-header">
-        <p className="tournaments-eyebrow">PLAYER ARENA</p>
-        <h1>Tournaments</h1>
-        <p className="tournaments-subtitle">
-          Explore available tournament categories.
-        </p>
-      </header>
+        <div className="tournament-page-toolbar">
+          <div className="tournament-page-title-group">
+            <span className="tournament-page-title-icon">
+              <Trophy size={20} />
+            </span>
 
-      <section className="tournament-types-section">
-        <div className="tournament-section-heading">
-          <div>
-            <h2>Tournament Types</h2>
-            <p>Choose a category to explore.</p>
+            <h1>Tournaments</h1>
           </div>
 
           <Link
@@ -37,6 +33,15 @@ function TournamentsPage() {
           >
             All
           </Link>
+        </div>
+      </header>
+
+      <section className="tournament-types-section">
+        <div className="tournament-section-heading">
+          <h2>Tournament Types</h2>
+          <span className="tournament-section-indicator">
+            BROWSE
+          </span>
         </div>
 
         {loading && (
