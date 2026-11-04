@@ -27,10 +27,11 @@ export function useChatRealtime(
       .on(
         "broadcast",
         { event: "message_created" },
-        (event: MessageCreatedEvent) => {
-          if (
-            event.conversation_id !== conversationId
-          ) {
+        (broadcast) => {
+          const event =
+            broadcast.payload as MessageCreatedEvent;
+
+          if (event.conversation_id !== conversationId) {
             return;
           }
 
