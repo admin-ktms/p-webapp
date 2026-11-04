@@ -38,7 +38,7 @@ const moreLinks = [
 function PlayerShell() {
   const location = useLocation();
 
-  const { accessLevel, signOut } = useAuth();
+  const { accessLevel, username, signOut } = useAuth();
 
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -139,9 +139,9 @@ function PlayerShell() {
 
         <div className="sidebar-footer">
           <div className="status-indicator" />
-          <span>
-            {profileOnly ? "PROFILE ACCESS ONLY" : "PLAYER PORTAL"}
-          </span>
+            <span className="sidebar-username" title={username ?? undefined}>
+              {username ?? "PLAYER"}
+            </span>
         </div>
       </aside>
 
