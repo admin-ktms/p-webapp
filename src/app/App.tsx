@@ -13,7 +13,6 @@ import ConversationPage from "../pages/chat/ConversationPage";
 
 import TournamentsPage from "../pages/tournament/TournamentsPage";
 import TournamentDirectoryPage from "../pages/tournament/TournamentDirectoryPage";
-import PlaceholderPage from "../pages/PlaceholderPage";
 
 function App() {
   return (
