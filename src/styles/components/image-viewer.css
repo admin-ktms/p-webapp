@@ -1,0 +1,126 @@
+/* =========================================
+   REUSABLE IMAGE VIEWER
+========================================= */
+
+.image-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.image-viewer {
+  display: flex;
+  width: min(100%, 1100px);
+  height: min(90dvh, 850px);
+  flex-direction: column;
+  overflow: hidden;
+  background: #111;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.image-viewer-header,
+.image-viewer-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 17px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.image-viewer-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.image-viewer-footer {
+  justify-content: center;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.image-viewer-close,
+.image-viewer-nav {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  color: var(--text);
+  background: rgba(34, 34, 34, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.image-viewer-close {
+  width: 37px;
+  height: 37px;
+}
+
+.image-viewer-content {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+}
+
+.image-viewer-content img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.image-viewer-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 43px;
+  height: 43px;
+  transform: translateY(-50%);
+}
+
+.image-viewer-previous {
+  left: 12px;
+}
+
+.image-viewer-next {
+  right: 12px;
+}
+
+.image-viewer-close:hover,
+.image-viewer-nav:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+@media (max-width: 600px) {
+  .image-viewer-overlay {
+    padding: 0;
+  }
+
+  .image-viewer {
+    width: 100%;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .image-viewer-content {
+    padding: 8px;
+  }
+
+  .image-viewer-nav {
+    width: 38px;
+    height: 38px;
+  }
+}
