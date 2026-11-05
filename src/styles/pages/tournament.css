@@ -773,3 +773,302 @@
   background: rgb(255 69 89 / 10%);
   border-color: rgb(255 69 89 / 28%);
 }
+
+/* =========================================
+   REGISTRATION REQUEST MODAL
+========================================= */
+
+.registration-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgb(0 0 0 / 78%);
+  backdrop-filter: blur(5px);
+}
+
+.registration-modal {
+  display: flex;
+  width: 100%;
+  max-width: 440px;
+  max-height: min(85vh, 680px);
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
+}
+
+.registration-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 21px 21px 17px;
+  border-bottom: 1px solid var(--border);
+}
+
+.registration-modal-eyebrow {
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 1.3px;
+}
+
+.registration-modal-header h2 {
+  margin: 7px 0 0;
+  font-size: 19px;
+  font-weight: 850;
+}
+
+.registration-modal-close {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.registration-modal-close:hover {
+  color: var(--text);
+  border-color: var(--primary);
+}
+
+.registration-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 21px;
+}
+
+.registration-modal-tournament {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 23px;
+  padding: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.registration-modal-tournament span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.registration-modal-tournament strong {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.registration-modal-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+  color: var(--primary);
+}
+
+.registration-modal-section-heading h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.registration-modal-section-heading p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.registration-squad-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.registration-squad-option {
+  display: flex;
+  width: 100%;
+  min-height: 65px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.registration-squad-option:hover {
+  border-color: rgb(183 255 0 / 45%);
+}
+
+.registration-squad-option.selected {
+  background: rgb(183 255 0 / 7%);
+  border-color: var(--primary);
+}
+
+.registration-squad-radio {
+  display: grid;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  place-items: center;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+}
+
+.registration-squad-option.selected .registration-squad-radio {
+  border: 2px solid var(--primary);
+}
+
+.registration-squad-radio span {
+  width: 9px;
+  height: 9px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.registration-squad-info {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.registration-squad-info strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.registration-squad-info small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.registration-squad-selected {
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.registration-modal-state {
+  display: flex;
+  min-height: 130px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.registration-modal-state strong {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.registration-modal-state p {
+  max-width: 270px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.registration-modal-error {
+  color: var(--danger);
+}
+
+.registration-modal-error button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  color: var(--primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.registration-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 15px 21px;
+  border-top: 1px solid var(--border);
+}
+
+.registration-modal-cancel,
+.registration-modal-continue {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 15px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.registration-modal-cancel {
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.registration-modal-continue {
+  color: #050505;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.registration-modal-continue:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+@media (max-width: 480px) {
+  .registration-modal-backdrop {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .registration-modal {
+    max-height: 88vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .registration-modal-header,
+  .registration-modal-body {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .registration-modal-footer {
+    padding: 13px 16px;
+  }
+
+  .registration-modal-cancel,
+  .registration-modal-continue {
+    flex: 1;
+  }
+}
