@@ -722,3 +722,54 @@
       calc(110px + env(safe-area-inset-bottom));
   }
 }
+
+
+/* Tournament status badges */
+
+.tournament-card-heading-text .tournament-status-badge {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 21px;
+  align-items: center;
+  margin-top: 4px;
+  padding: 3px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* Upcoming */
+
+.tournament-card-heading-text .tournament-status-soon {
+  color: var(--muted);
+  background: rgb(163 163 163 / 9%);
+  border-color: rgb(163 163 163 / 22%);
+}
+
+/* Registration open */
+
+.tournament-card-heading-text .tournament-status-open {
+  color: #35D07F;
+  background: rgb(53 208 127 / 10%);
+  border-color: rgb(53 208 127 / 30%);
+}
+
+/* Registration closed and active tournament stages */
+
+.tournament-card-heading-text .tournament-status-ongoing {
+  color: var(--competition);
+  background: rgb(255 107 0 / 10%);
+  border-color: rgb(255 107 0 / 28%);
+}
+
+/* Suspended */
+
+.tournament-card-heading-text .tournament-status-suspended {
+  color: var(--danger);
+  background: rgb(255 69 89 / 10%);
+  border-color: rgb(255 69 89 / 28%);
+}
