@@ -14,6 +14,7 @@ import {
 
 import { useAuth } from "../../app/AuthContext";
 import { usePlayerProfile } from "../../hooks/profile/usePlayerProfile";
+import PlayerSquads from "../../components/profile/PlayerSquads";
 
 import AvatarSelector from "../../components/profile/AvatarSelector";
 
@@ -275,7 +276,12 @@ function ProfilePage() {
                 </div>
 
               </div>
-            </section>
+                </section>
+
+            {/* Squad management is only available to full-access players */}
+            {canChangeAvatar && (
+              <PlayerSquads />
+            )}
 
           </div>
         )}
