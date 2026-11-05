@@ -24,6 +24,9 @@ import "./styles/pages/register.css";
 import "./styles/pages/tournament.css";
 import "./styles/pages/profile.css";
 
+//Image viewer styles
+import "./styles/components/image-viewer.css";
+
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
