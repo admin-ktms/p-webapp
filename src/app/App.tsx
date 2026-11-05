@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PlayerShell from "../layouts/PlayerShell";
 import PlaceholderPage from "../pages/PlaceholderPage";
 
+import ProfilePage from "../pages/profile/ProfilePage";
+
 import RegisterPage from "../pages/RegisterPage";
 import LoginPage from "../pages/LoginPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
@@ -71,7 +73,7 @@ function App() {
 
           <Route
             path="profile"
-            element={<PlaceholderPage title="Profile" />}
+            element={<ProfilePage />}
           />
 
           <Route
