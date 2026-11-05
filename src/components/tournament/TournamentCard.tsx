@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   ChevronUp,
@@ -13,6 +14,10 @@ import {
 import type {
   Tournament
 } from "../../types/tournament.types";
+
+import RegistrationRequestModal from "./RegistrationRequestModal";
+
+import { registrationService } from "../../services/registration.service";
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -63,21 +68,79 @@ function formatDateOnly(value: string): string {
   }).format(date);
 }
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Unable to submit your registration request. Please try again.";
+}
+
 function TournamentCard({
   tournament
 }: TournamentCardProps) {
+  const navigate = useNavigate();
+
   const [expanded, setExpanded] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] =
+    useState(false);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] =
+    useState<string | null>(null);
 
   const status = getTournamentStatusPresentation(
     tournament.tournament_status
   );
+
+  async function handleRegistration(squadId: string) {
+    if (submitting) {
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmissionError(null);
+
+    try {
+      const result = await registrationService.createRequest({
+        tournament_id: tournament.tournament_id,
+        squad_id: squadId
+      });
+
+      if (!result.success) {
+        setSubmissionError(
+          result.message ||
+          result.reason_code ||
+          "Your registration request could not be created."
+        );
+        return;
+      }
+
+      setShowRegistrationModal(false);
+
+      navigate("/registrations");
+    } catch (error) {
+      setSubmissionError(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function closeRegistrationModal() {
+    if (submitting) {
+      return;
+    }
+
+    setShowRegistrationModal(false);
+    setSubmissionError(null);
+  }
 
   return (
     <article className="tournament-card">
       <button
         type="button"
         className="tournament-card-heading"
-        onClick={() => setExpanded((current) => !current)}
+        onClick={() => setExpanded(current => !current)}
         aria-expanded={expanded}
       >
         <span className="tournament-card-heading-text">
@@ -146,12 +209,29 @@ function TournamentCard({
             <button
               type="button"
               className="tournament-register-button"
+              onClick={() => {
+                setSubmissionError(null);
+                setShowRegistrationModal(true);
+              }}
             >
               <span>Register Now</span>
               <ArrowRight size={16} />
             </button>
           )}
         </div>
+      )}
+
+      {showRegistrationModal && (
+        <RegistrationRequestModal
+          tournamentName={tournament.tournament_name}
+          tournamentId={tournament.tournament_id}
+          registrationFee={tournament.registration_fee}
+          currency={tournament.currency}
+          submitting={submitting}
+          submissionError={submissionError}
+          onClose={closeRegistrationModal}
+          onContinue={handleRegistration}
+        />
       )}
     </article>
   );
