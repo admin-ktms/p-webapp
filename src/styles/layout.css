@@ -394,3 +394,52 @@
   }
 }
 
+/* =========================================
+   PAGE LAYOUT SHELL INTEGRATION
+
+   Activates only when the current page uses
+   the reusable PageLayout component.
+========================================= */
+
+.main-area:has(> .page-content > .page-layout) {
+  display: flex;
+  height: 100dvh;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main-area:has(> .page-content > .page-layout) > .app-header {
+  flex: 0 0 var(--header-height);
+}
+
+.main-area:has(> .page-content > .page-layout) > .restricted-notice {
+  flex: 0 0 auto;
+}
+
+.page-content:has(> .page-layout) {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Mobile */
+
+@media (max-width: 767px) {
+  .main-area:has(> .page-content > .page-layout) {
+    height: 100dvh;
+    min-height: 0;
+    margin-left: 0;
+  }
+
+  .main-area:has(> .page-content > .page-layout) > .app-header {
+    flex-basis: var(--mobile-header-height);
+  }
+
+  .page-content:has(> .page-layout) {
+    min-height: 0;
+    padding: 0;
+  }
+}
