@@ -536,8 +536,9 @@
   }
 
   .profile-content {
-    padding: 22px 18px 35px;
-  }
+     padding: 22px 18px
+       calc(110px + env(safe-area-inset-bottom));
+   }
 
   .profile-identity {
     align-items: flex-start;
