@@ -23,7 +23,9 @@ export const squadService = {
   ): Promise<SquadRecord> {
     return callApi<SquadRecord>(
       "squad.create",
-      input
+      {
+        squad_name: input.squad_name
+      }
     );
   },
 
@@ -32,7 +34,15 @@ export const squadService = {
   ): Promise<SquadRecord> {
     return callApi<SquadRecord>(
       "squad.update",
-      input
+      {
+        squad_id: input.squad_id,
+        ...(input.squad_name !== undefined
+          ? { squad_name: input.squad_name }
+          : {}),
+        ...(input.screenshot_paths !== undefined
+          ? { screenshot_paths: input.screenshot_paths }
+          : {})
+      }
     );
   },
 
