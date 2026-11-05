@@ -345,3 +345,52 @@
     padding: 13px 11px;
   }
 }
+
+
+/* =========================================
+   PROFILE ROUTE SCROLL ARCHITECTURE
+
+   Scoped exclusively to /profile.
+========================================= */
+
+.main-area.profile-main-area {
+  display: flex;
+  height: 100dvh;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.profile-main-area > .app-header {
+  flex: 0 0 var(--header-height);
+}
+
+.profile-main-area > .restricted-notice {
+  flex: 0 0 auto;
+}
+
+.page-content.profile-page-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Mobile viewport */
+
+@media (max-width: 767px) {
+  .main-area.profile-main-area {
+    height: 100dvh;
+    min-height: 0;
+    margin-left: 0;
+  }
+
+  .profile-main-area > .app-header {
+    flex-basis: var(--mobile-header-height);
+  }
+
+  .page-content.profile-page-content {
+    padding: 0;
+  }
+}
+
