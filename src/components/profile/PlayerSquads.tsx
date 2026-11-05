@@ -376,11 +376,13 @@ function PlayerSquads() {
 
                       <button
                         type="button"
-                        disabled
-                        title="Screenshot replacement will be implemented in Stage 3"
+                        onClick={() => {
+                          setScreenshotSquad(squad);
+                          setOpenMenuId(null);
+                        }}
                       >
                         <ImageIcon size={15} />
-                        Update
+                        Manage screenshots
                       </button>
 
                       <button
@@ -543,6 +545,18 @@ function PlayerSquads() {
         </div>
       )}
 
+      {screenshotSquad && playerId && (
+        <SquadScreenshotManager
+          key={screenshotSquad.squad_id}
+          playerId={playerId}
+          squadId={screenshotSquad.squad_id}
+          squadName={screenshotSquad.squad_name}
+          open={true}
+          onClose={() => setScreenshotSquad(null)}
+          onSaved={refresh}
+        />
+      )}
+      
       <ImageViewer
         images={viewerImages}
         open={viewerOpen}
