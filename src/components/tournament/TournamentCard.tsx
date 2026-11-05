@@ -109,7 +109,6 @@ function TournamentCard({
 
       if (!result.success) {
         setSubmissionError(
-          result.message ||
           result.reason_code ||
           "Your registration request could not be created."
         );
