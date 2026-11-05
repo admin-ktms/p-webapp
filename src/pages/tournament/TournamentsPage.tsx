@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Trophy } from "lucide-react";
 
+import PageLayout from "../../components/layout/PageLayout";
+
 import TournamentTypeCard from "../../components/tournament/TournamentTypeCard";
 import TournamentLoading from "../../components/tournament/TournamentLoading";
 import TournamentEmptyState from "../../components/tournament/TournamentEmptyState";
@@ -16,36 +18,42 @@ function TournamentsPage() {
   } = useTournamentTypes();
 
   return (
-    <section className="tournaments-page">
-      <header className="tournaments-page-header">
-        <div className="tournament-page-toolbar">
-          <div className="tournament-page-title-group">
-            <span className="tournament-page-title-icon">
-              <Trophy size={20} />
-            </span>
+    <PageLayout
+      className="tournaments-page"
+      header={
+        <header className="tournaments-page-header">
+          <div className="tournament-page-toolbar">
+            <div className="tournament-page-title-group">
+              <span className="tournament-page-title-icon">
+                <Trophy size={20} />
+              </span>
 
-            <h1>Tournaments</h1>
+              <h1>Tournaments</h1>
+            </div>
+
+            <Link
+              to="/tournaments/all"
+              className="tournament-all-toggle"
+            >
+              All
+            </Link>
           </div>
-
-          <Link
-            to="/tournaments/all"
-            className="tournament-all-toggle"
-          >
-            All
-          </Link>
-        </div>
-      </header>
-
+        </header>
+      }
+    >
       <section className="tournament-types-section">
         <div className="tournament-section-heading">
           <h2>Tournament Types</h2>
+
           <span className="tournament-section-indicator">
             BROWSE
           </span>
         </div>
 
         {loading && (
-          <TournamentLoading label="Loading tournament types..." />
+          <TournamentLoading
+            label="Loading tournament types..."
+          />
         )}
 
         {!loading && error && (
@@ -74,7 +82,7 @@ function TournamentsPage() {
           </div>
         )}
       </section>
-    </section>
+    </PageLayout>
   );
 }
 
