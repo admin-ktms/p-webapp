@@ -16,6 +16,7 @@ import { useAuth } from "../../app/AuthContext";
 import { usePlayerProfile } from "../../hooks/profile/usePlayerProfile";
 import PlayerSquads from "../../components/profile/PlayerSquads";
 
+import PageLayout from "../../components/layout/PageLayout";
 import AvatarSelector from "../../components/profile/AvatarSelector";
 
 import type {
