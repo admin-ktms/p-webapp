@@ -1,7 +1,61 @@
+
+
 export interface TournamentType {
   tournament_type_id: string;
   tournament_type_name: string;
   tournament_type_status: "Active";
+}
+
+export type TournamentDisplayStatus =
+  | "Soon"
+  | "Open"
+  | "Ongoing"
+  | "Suspended";
+
+export interface TournamentStatusPresentation {
+  label: TournamentDisplayStatus;
+  className: string;
+  canRegister: boolean;
+}
+
+export function getTournamentStatusPresentation(
+  status: string
+): TournamentStatusPresentation | null {
+  switch (status) {
+    case "Upcoming":
+      return {
+        label: "Soon",
+        className: "soon",
+        canRegister: false
+      };
+
+    case "Registration Open":
+      return {
+        label: "Open",
+        className: "open",
+        canRegister: true
+      };
+
+    case "Registration Closed":
+    case "Group Stage":
+    case "Playoff Stage":
+    case "Knockout Stage":
+      return {
+        label: "Ongoing",
+        className: "ongoing",
+        canRegister: false
+      };
+
+    case "Suspended":
+      return {
+        label: "Suspended",
+        className: "suspended",
+        canRegister: false
+      };
+
+    default:
+      return null;
+  }
 }
 
 export interface Tournament {
