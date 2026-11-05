@@ -71,6 +71,13 @@ function ProfilePage() {
 
   const canChangeAvatar = accessLevel === "full";
 
+  const statusClass =
+    profile?.player_status.toLowerCase() === "active"
+      ? "status-active"
+      : profile?.player_status.toLowerCase() === "suspended"
+        ? "status-suspended"
+        : "status-banned";
+
   const handleAvatarChange = async (
     avatarId: PlayerAvatarId
   ) => {
@@ -166,9 +173,8 @@ function ProfilePage() {
                   {profile.player_id}
                 </span>
 
-                <div className="profile-status">
+                <div className={`profile-status ${statusClass}`}>
                   <ShieldCheck size={14} />
-
                   <span>{profile.player_status}</span>
                 </div>
 
