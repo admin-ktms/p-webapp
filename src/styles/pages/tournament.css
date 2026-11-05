@@ -693,3 +693,26 @@
     font-size: 20px;
   }
 }
+
+/* =========================================
+   TOURNAMENT PAGE LAYOUT SPACING
+========================================= */
+
+.tournaments-page > .page-layout-header {
+  padding: 24px 32px 0;
+}
+
+.tournaments-page > .page-layout-content {
+  padding: 0 32px 32px;
+}
+
+@media (max-width: 767px) {
+  .tournaments-page > .page-layout-header {
+    padding: 17px 17px 0;
+  }
+
+  .tournaments-page > .page-layout-content {
+    padding: 0 17px
+      calc(110px + env(safe-area-inset-bottom));
+  }
+}
