@@ -27,6 +27,9 @@ import "./styles/pages/profile.css";
 //Image viewer styles
 import "./styles/components/image-viewer.css";
 
+//Squad screenshot upload styles
+import "./styles/components/squad-screenshot-manager.css";
+
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
