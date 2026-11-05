@@ -1072,3 +1072,72 @@
     flex: 1;
   }
 }
+
+
+/* Registration review and submission feedback */
+
+.registration-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.registration-review-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: var(--primary);
+  font-size: 12px;
+}
+
+.registration-review-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.registration-review-row span {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.registration-review-row strong {
+  max-width: 65%;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.registration-review-note {
+  margin: 15px 0 0;
+  padding: 12px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.registration-submission-error {
+  margin-top: 14px;
+  padding: 11px 12px;
+  color: var(--danger);
+  background: rgb(255 69 89 / 8%);
+  border: 1px solid rgb(255 69 89 / 25%);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.registration-modal-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
