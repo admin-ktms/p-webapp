@@ -28,6 +28,7 @@ export interface CreateSquadInput {
 export interface UpdateSquadInput {
   squad_id: string;
   squad_name?: string;
+  screenshot_ids?: string[];
   screenshot_paths?: string[];
 }
 
