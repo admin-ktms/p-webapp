@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 
 import {
@@ -14,14 +15,16 @@ import {
 
 import { useAuth } from "../../app/AuthContext";
 import { usePlayerProfile } from "../../hooks/profile/usePlayerProfile";
+
 import PlayerSquads from "../../components/profile/PlayerSquads";
-
-import PageLayout from "../../components/layout/PageLayout";
 import AvatarSelector from "../../components/profile/AvatarSelector";
+import PageLayout from "../../components/layout/PageLayout";
 
-import type {
-  PlayerAvatarId
-} from "../../types/profile.types";
+import type { PlayerAvatarId } from "../../types/profile.types";
+
+// =========================================
+// DATE FORMATTING
+// =========================================
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -37,7 +40,7 @@ function formatDate(value: string): string {
   }).format(date);
 }
 
-// Preserve date-only values without timezone conversion.
+// Keep date-only values independent of timezone conversion.
 function formatDateOfBirth(value: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
@@ -48,15 +51,26 @@ function formatDateOfBirth(value: string): string {
       Number(match[3])
     );
 
-    return Number.isNaN(date.getTime())
-      ? "Not available"
-      : formatDate(date.toISOString());
+    if (Number.isNaN(date.getTime())) {
+      return "Not available";
+    }
+
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }).format(date);
   }
 
   return formatDate(value);
 }
 
+// =========================================
+// PROFILE PAGE
+// =========================================
+
 function ProfilePage() {
+  // Authentication and profile data.
   const { accessLevel } = useAuth();
 
   const {
@@ -68,10 +82,15 @@ function ProfilePage() {
     updateAvatar
   } = usePlayerProfile();
 
+  // Avatar selector state.
   const [avatarModalOpen, setAvatarModalOpen] =
     useState(false);
 
   const canChangeAvatar = accessLevel === "full";
+
+  // =========================================
+  // PROFILE STATUS
+  // =========================================
 
   const statusClass =
     profile?.player_status.toLowerCase() === "active"
@@ -80,30 +99,41 @@ function ProfilePage() {
         ? "status-suspended"
         : "status-banned";
 
+  // =========================================
+  // AVATAR UPDATE
+  // =========================================
+
   const handleAvatarChange = async (
     avatarId: PlayerAvatarId
   ) => {
     return updateAvatar(avatarId);
   };
 
+  // =========================================
+  // PAGE RENDER
+  // =========================================
+
   return (
     <>
       <PageLayout
         className="profile-page"
         header={
+          // -----------------------------------
+          // Fixed profile header
+          // -----------------------------------
           <header className="profile-page-header">
             <div>
               <p className="profile-eyebrow">
                 PLAYER ARENA
               </p>
-  
+
               <h1>My Profile</h1>
-  
+
               <p className="profile-page-subtitle">
                 Your player identity and personal information.
               </p>
             </div>
-  
+
             <button
               type="button"
               className="profile-refresh-button"
@@ -121,6 +151,9 @@ function ProfilePage() {
         }
       >
 
+        {/* -------------------------------------
+            Loading state
+        ------------------------------------- */}
         {loading && !profile && (
           <div className="profile-state">
             <RefreshCw
@@ -132,6 +165,9 @@ function ProfilePage() {
           </div>
         )}
 
+        {/* -------------------------------------
+            Initial loading error
+        ------------------------------------- */}
         {!loading && !profile && error && (
           <div className="profile-state profile-error-state">
             <p>Unable to load your profile.</p>
@@ -148,6 +184,9 @@ function ProfilePage() {
           </div>
         )}
 
+        {/* -------------------------------------
+            Profile information
+        ------------------------------------- */}
         {profile && (
           <div className="profile-content">
 
@@ -197,7 +236,7 @@ function ProfilePage() {
               </div>
             </section>
 
-            {/* Profile errors, including avatar update failures */}
+            {/* Profile and avatar update errors */}
             {error && (
               <div
                 className="profile-inline-error"
@@ -228,6 +267,7 @@ function ProfilePage() {
 
               <div className="profile-information-grid">
 
+                {/* Email */}
                 <div className="profile-information-item">
                   <span className="profile-information-icon">
                     <Mail size={18} />
@@ -239,6 +279,7 @@ function ProfilePage() {
                   </div>
                 </div>
 
+                {/* WhatsApp */}
                 <div className="profile-information-item">
                   <span className="profile-information-icon">
                     <Phone size={18} />
@@ -250,6 +291,7 @@ function ProfilePage() {
                   </div>
                 </div>
 
+                {/* Date of birth */}
                 <div className="profile-information-item">
                   <span className="profile-information-icon">
                     <CalendarDays size={18} />
@@ -263,6 +305,7 @@ function ProfilePage() {
                   </div>
                 </div>
 
+                {/* Registration date */}
                 <div className="profile-information-item">
                   <span className="profile-information-icon">
                     <Clock3 size={18} />
@@ -277,9 +320,9 @@ function ProfilePage() {
                 </div>
 
               </div>
-                </section>
+            </section>
 
-            {/* Squad management is only available to full-access players */}
+            {/* Squad management */}
             {canChangeAvatar && (
               <PlayerSquads />
             )}
@@ -287,9 +330,13 @@ function ProfilePage() {
           </div>
         )}
 
-      </div>
+      </PageLayout>
 
-      {/* Avatar selection */}
+      {/* ---------------------------------------
+          Avatar selection modal
+          Kept outside PageLayout so it is not
+          constrained by the page scroll area.
+      --------------------------------------- */}
       <AvatarSelector
         currentAvatar={profile?.avatar_id ?? null}
         open={avatarModalOpen && canChangeAvatar}
@@ -297,8 +344,7 @@ function ProfilePage() {
         onClose={() => setAvatarModalOpen(false)}
         onConfirm={handleAvatarChange}
       />
-
-    </section>
+    </>
   );
 }
 
