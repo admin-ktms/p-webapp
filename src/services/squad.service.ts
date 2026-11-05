@@ -1,4 +1,5 @@
 
+import { supabase } from "../lib/supabase";
 import { callApi } from "../lib/api";
 
 import type {
@@ -16,6 +17,47 @@ export const squadService = {
     return callApi<SquadListResponse>(
       "squad.list_own"
     );
+    async uploadScreenshot(
+      playerId: string,
+      squadId: string,
+      file: File
+    ): Promise<string> {
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
+    
+      const extensions: Record<string, string> = {
+        "image/jpeg": "jpg",
+        "image/png": "png"
+      };
+    
+      if (!extensions[file.type]) {
+        throw new Error("Only JPEG and PNG images are allowed.");
+      }
+    
+      if (file.size <= 0 || file.size > MAX_FILE_SIZE) {
+        throw new Error("Each screenshot must be between 1 byte and 2 MB.");
+      }
+    
+      if (!playerId || !squadId) {
+        throw new Error("Player and squad identifiers are required.");
+      }
+    
+      const filename = `${crypto.randomUUID()}.${extensions[file.type]}`;
+      const path = `${playerId}/${squadId}/${filename}`;
+    
+      const { data, error } = await supabase.storage
+        .from("squad-screenshot-bucket")
+        .upload(path, file, {
+          cacheControl: "3600",
+          contentType: file.type,
+          upsert: false
+        });
+    
+      if (error) {
+        throw new Error(error.message);
+      }
+    
+      return data.path;
+    },
   },
 
   async create(
@@ -38,6 +80,9 @@ export const squadService = {
         squad_id: input.squad_id,
         ...(input.squad_name !== undefined
           ? { squad_name: input.squad_name }
+          : {}),
+        ...(input.screenshot_ids !== undefined
+          ? { screenshot_ids: input.screenshot_ids }
           : {}),
         ...(input.screenshot_paths !== undefined
           ? { screenshot_paths: input.screenshot_paths }
