@@ -27,6 +27,9 @@ import "./styles/pages/profile.css";
 //Image viewer styles
 import "./styles/components/image-viewer.css";
 
+//Page layout
+import "./styles/components/page-layout.css";
+
 //Squad screenshot upload styles
 import "./styles/components/squad-screenshot-manager.css";
 
