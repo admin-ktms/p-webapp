@@ -9,14 +9,19 @@ import {
 import { profileService } from "../../services/profile.service";
 
 import type {
-  PlayerProfile
+  PlayerProfile,
+  PlayerAvatarId
 } from "../../types/profile.types";
 
 interface UsePlayerProfileResult {
   profile: PlayerProfile | null;
   loading: boolean;
+  updatingAvatar: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  updateAvatar: (
+    avatarId: PlayerAvatarId
+  ) => Promise<boolean>;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -24,7 +29,7 @@ function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return "Could not load your player profile.";
+  return "The requested operation could not be completed.";
 }
 
 export function usePlayerProfile(): UsePlayerProfileResult {
@@ -32,6 +37,9 @@ export function usePlayerProfile(): UsePlayerProfileResult {
     useState<PlayerProfile | null>(null);
 
   const [loading, setLoading] = useState(true);
+
+  const [updatingAvatar, setUpdatingAvatar] =
+    useState(false);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -65,6 +73,40 @@ export function usePlayerProfile(): UsePlayerProfileResult {
     }
   }, []);
 
+  const updateAvatar = useCallback(
+    async (avatarId: PlayerAvatarId): Promise<boolean> => {
+      if (updatingAvatar) {
+        return false;
+      }
+
+      setUpdatingAvatar(true);
+      setError(null);
+
+      try {
+        const result = await profileService.selectAvatar(avatarId);
+
+        setProfile((previous) => {
+          if (!previous) {
+            return previous;
+          }
+
+          return {
+            ...previous,
+            avatar_id: result.avatar_id
+          };
+        });
+
+        return true;
+      } catch (err) {
+        setError(getErrorMessage(err));
+        return false;
+      } finally {
+        setUpdatingAvatar(false);
+      }
+    },
+    [updatingAvatar]
+  );
+
   useEffect(() => {
     void refresh();
 
@@ -76,7 +118,9 @@ export function usePlayerProfile(): UsePlayerProfileResult {
   return {
     profile,
     loading,
+    updatingAvatar,
     error,
-    refresh
+    refresh,
+    updateAvatar
   };
 }
