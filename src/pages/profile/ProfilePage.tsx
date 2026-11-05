@@ -87,39 +87,39 @@ function ProfilePage() {
   };
 
   return (
-    <section className="profile-page">
-
-      {/* Fixed page header */}
-      <header className="profile-page-header">
-        <div>
-          <p className="profile-eyebrow">
-            PLAYER ARENA
-          </p>
-
-          <h1>My Profile</h1>
-
-          <p className="profile-page-subtitle">
-            Your player identity and personal information.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="profile-refresh-button"
-          onClick={() => void refresh()}
-          disabled={loading}
-          aria-label="Refresh profile"
-          title="Refresh profile"
-        >
-          <RefreshCw
-            size={18}
-            className={loading ? "profile-spinner" : ""}
-          />
-        </button>
-      </header>
-
-      {/* Independently scrollable content */}
-      <div className="profile-page-scroll">
+    <>
+      <PageLayout
+        className="profile-page"
+        header={
+          <header className="profile-page-header">
+            <div>
+              <p className="profile-eyebrow">
+                PLAYER ARENA
+              </p>
+  
+              <h1>My Profile</h1>
+  
+              <p className="profile-page-subtitle">
+                Your player identity and personal information.
+              </p>
+            </div>
+  
+            <button
+              type="button"
+              className="profile-refresh-button"
+              onClick={() => void refresh()}
+              disabled={loading}
+              aria-label="Refresh profile"
+              title="Refresh profile"
+            >
+              <RefreshCw
+                size={18}
+                className={loading ? "profile-spinner" : ""}
+              />
+            </button>
+          </header>
+        }
+      >
 
         {loading && !profile && (
           <div className="profile-state">
