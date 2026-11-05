@@ -11,6 +11,8 @@ import {
   RefreshCw
 } from "lucide-react";
 
+import SquadScreenshotManager from "./SquadScreenshotManager";
+
 import { usePlayerSquads } from "../../hooks/profile/usePlayerSquads";
 import { squadService } from "../../services/squad.service";
 
@@ -46,6 +48,7 @@ function getErrorMessage(error: unknown): string {
 
 function PlayerSquads() {
   const {
+    playerId,
     squadCount,
     squads,
     loading,
@@ -61,6 +64,9 @@ function PlayerSquads() {
 
   const [squadName, setSquadName] =
     useState("");
+
+  const [screenshotSquad, setScreenshotSquad] =
+    useState<PlayerSquad | null>(null);
 
   const [saving, setSaving] = useState(false);
 
