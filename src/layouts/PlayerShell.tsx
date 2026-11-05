@@ -38,6 +38,8 @@ const moreLinks = [
 function PlayerShell() {
   const location = useLocation();
 
+  const isProfileRoute = location.pathname === "/profile";
+  
   const { accessLevel, username, signOut } = useAuth();
 
   const [moreOpen, setMoreOpen] = useState(false);
@@ -145,7 +147,11 @@ function PlayerShell() {
         </div>
       </aside>
 
-      <div className="main-area">
+      <div
+        className={`main-area ${
+          isProfileRoute ? "profile-main-area" : ""
+        }`}
+      >
         <header className="app-header">
           <div className="mobile-brand">
             <div className="brand-mark">
@@ -189,7 +195,11 @@ function PlayerShell() {
           </div>
         )}
 
-        <main className="page-content">
+        <main
+          className={`page-content ${
+            isProfileRoute ? "profile-page-content" : ""
+          }`}
+        >
           <Outlet />
         </main>
       </div>
