@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent
+} from "react";
 
 import {
   ImagePlus,
@@ -63,8 +68,10 @@ function SquadScreenshotManager({
     useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const newFilesRef = useRef<PendingScreenshot[]>([]);
+
+  const totalSelected =
+    retainedIds.length + newFiles.length;
 
   const updateNewFiles = (
     updater: (
@@ -78,7 +85,7 @@ function SquadScreenshotManager({
     });
   };
 
-  // Load current screenshots whenever the manager opens.
+  // Load the current screenshot set before allowing changes.
   useEffect(() => {
     if (!open) return;
 
@@ -100,12 +107,13 @@ function SquadScreenshotManager({
 
         setRetainedIds(
           result.screenshots.map(
-            (screenshot) => screenshot.screenshot_id
+            (item) => item.screenshot_id
           )
         );
       })
-      .catch((err) => { 
+      .catch((err) => {
         if (cancelled) return;
+
         setLoadFailed(true);
         setError(getErrorMessage(err));
       })
@@ -120,7 +128,7 @@ function SquadScreenshotManager({
     };
   }, [open, squadId]);
 
-  // Revoke locally generated image previews on unmount.
+  // Revoke any remaining preview URLs on unmount.
   useEffect(() => {
     return () => {
       newFilesRef.current.forEach((item) => {
@@ -129,27 +137,27 @@ function SquadScreenshotManager({
     };
   }, []);
 
-  const totalSelected =
-    retainedIds.length + newFiles.length;
-
   const isRetained = (id: string) =>
     retainedIds.includes(id);
 
   const toggleExistingScreenshot = (id: string) => {
     setError(null);
 
-    setRetainedIds((current) => {
-      if (current.includes(id)) {
-        return current.filter((item) => item !== id);
-      }
+    if (retainedIds.includes(id)) {
+      setRetainedIds((current) =>
+        current.filter((item) => item !== id)
+      );
+      return;
+    }
 
-      if (current.length + newFiles.length >= MAX_SCREENSHOTS) {
-        setError("A squad cannot have more than three screenshots.");
-        return current;
-      }
+    if (totalSelected >= MAX_SCREENSHOTS) {
+      setError(
+        "A squad cannot have more than three screenshots."
+      );
+      return;
+    }
 
-      return [...current, id];
-    });
+    setRetainedIds((current) => [...current, id]);
   };
 
   const handleFileSelection = (
@@ -180,7 +188,9 @@ function SquadScreenshotManager({
         file.type !== "image/jpeg" &&
         file.type !== "image/png"
       ) {
-        setError("Only JPEG and PNG images are allowed.");
+        setError(
+          "Only JPEG and PNG images are allowed."
+        );
         return;
       }
 
@@ -188,7 +198,9 @@ function SquadScreenshotManager({
         file.size <= 0 ||
         file.size > MAX_FILE_SIZE
       ) {
-        setError("Each screenshot must be between 1 byte and 2 MB.");
+        setError(
+          "Each screenshot must be between 1 byte and 2 MB."
+        );
         return;
       }
     }
@@ -207,32 +219,49 @@ function SquadScreenshotManager({
   };
 
   const removeNewFile = (key: string) => {
-    updateNewFiles((current) => {
-      const removed = current.find(
-        (item) => item.key === key
-      );
+    const item = newFiles.find(
+      (file) => file.key === key
+    );
 
-      if (removed) {
-        URL.revokeObjectURL(removed.previewUrl);
-      }
+    if (item) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
 
-      return current.filter(
-        (item) => item.key !== key
-      );
-    });
+    updateNewFiles((current) =>
+      current.filter((file) => file.key !== key)
+    );
+
+    setError(null);
   };
 
   const handleSave = async () => {
-    if (saving || loading) return;
-
-    if (totalSelected < 1 || totalSelected > MAX_SCREENSHOTS) {
-      setError("A squad must have between one and three screenshots.");
+    if (
+      saving ||
+      loading ||
+      loadFailed
+    ) {
       return;
     }
 
+    if (
+      totalSelected < 1 ||
+      totalSelected > MAX_SCREENSHOTS
+    ) {
+      setError(
+        "A squad must have between one and three screenshots."
+      );
+      return;
+    }
+
+    const orderedRetainedIds = existingScreenshots
+      .filter((item) =>
+        retainedIds.includes(item.screenshot_id)
+      )
+      .map((item) => item.screenshot_id);
+
     const screenshotsChanged =
       newFiles.length > 0 ||
-      retainedIds.length !== existingScreenshots.length;
+      orderedRetainedIds.length !== existingScreenshots.length;
 
     if (!screenshotsChanged) {
       onClose();
@@ -245,9 +274,8 @@ function SquadScreenshotManager({
     try {
       const uploadedPaths: string[] = [];
 
-      // Upload only files that have not already been uploaded.
-      // This also avoids duplicate uploads when the database
-      // update fails and the player retries.
+      // Reuse successful uploads if the database update
+      // failed during an earlier save attempt.
       for (const item of newFiles) {
         let path = item.uploadedPath;
 
@@ -275,7 +303,7 @@ function SquadScreenshotManager({
 
       await squadService.update({
         squad_id: squadId,
-        screenshot_ids: retainedIds,
+        screenshot_ids: orderedRetainedIds,
         screenshot_paths: uploadedPaths
       });
 
@@ -295,7 +323,10 @@ function SquadScreenshotManager({
     <div
       className="squad-screenshot-overlay"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !saving) {
+        if (
+          event.target === event.currentTarget &&
+          !saving
+        ) {
           onClose();
         }
       }}
@@ -351,7 +382,44 @@ function SquadScreenshotManager({
             </div>
           )}
 
-          {!loading && (
+          {!loading && loadFailed && (
+            <div className="squad-screenshot-state">
+              <span>
+                Screenshots could not be loaded. Reload the
+                manager before making changes.
+              </span>
+
+              <button
+                type="button"
+                className="profile-button-secondary"
+                onClick={() => {
+                  setLoadFailed(false);
+                  setError(null);
+                  setLoading(true);
+
+                  squadService.getScreenshots(squadId)
+                    .then((result) => {
+                      setExistingScreenshots(result.screenshots);
+                      setRetainedIds(
+                        result.screenshots.map(
+                          (item) => item.screenshot_id
+                        )
+                      );
+                    })
+                    .catch((err) => {
+                      setLoadFailed(true);
+                      setError(getErrorMessage(err));
+                    })
+                    .finally(() => setLoading(false));
+                }}
+                disabled={saving}
+              >
+                Retry loading
+              </button>
+            </div>
+          )}
+
+          {!loading && !loadFailed && (
             <>
               {existingScreenshots.length > 0 && (
                 <div className="squad-screenshot-group">
@@ -391,8 +459,10 @@ function SquadScreenshotManager({
                               }
                               disabled={
                                 saving ||
-                                (!retained &&
-                                  totalSelected >= MAX_SCREENSHOTS)
+                                (
+                                  !retained &&
+                                  totalSelected >= MAX_SCREENSHOTS
+                                )
                               }
                             >
                               {retained ? (
@@ -428,9 +498,7 @@ function SquadScreenshotManager({
                         />
 
                         <div>
-                          <span>
-                            {item.file.name}
-                          </span>
+                          <span>{item.file.name}</span>
 
                           <button
                             type="button"
@@ -457,6 +525,7 @@ function SquadScreenshotManager({
                   onChange={handleFileSelection}
                   disabled={
                     saving ||
+                    loadFailed ||
                     totalSelected >= MAX_SCREENSHOTS
                   }
                 />
@@ -464,9 +533,12 @@ function SquadScreenshotManager({
                 <button
                   type="button"
                   className="squad-screenshot-add"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() =>
+                    fileInputRef.current?.click()
+                  }
                   disabled={
                     saving ||
+                    loadFailed ||
                     totalSelected >= MAX_SCREENSHOTS
                   }
                 >
@@ -478,7 +550,10 @@ function SquadScreenshotManager({
           )}
 
           {error && (
-            <p className="squad-screenshot-error" role="alert">
+            <p
+              className="squad-screenshot-error"
+              role="alert"
+            >
               {error}
             </p>
           )}
@@ -500,6 +575,7 @@ function SquadScreenshotManager({
             onClick={() => void handleSave()}
             disabled={
               loading ||
+              loadFailed ||
               saving ||
               totalSelected < 1 ||
               (
