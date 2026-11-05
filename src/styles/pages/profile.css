@@ -607,3 +607,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.profile-status.status-active {
+  color: var(--success);
+}
+
+.profile-status.status-suspended {
+  color: var(--gold);
+}
+
+.profile-status.status-banned {
+  color: var(--danger);
+}
