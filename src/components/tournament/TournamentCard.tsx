@@ -1,12 +1,18 @@
+
 import { useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
   ArrowRight
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
-import type { Tournament } from "../../types/tournament.types";
+import {
+  getTournamentStatusPresentation
+} from "../../types/tournament.types";
+
+import type {
+  Tournament
+} from "../../types/tournament.types";
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -61,7 +67,10 @@ function TournamentCard({
   tournament
 }: TournamentCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const navigate = useNavigate();
+
+  const status = getTournamentStatusPresentation(
+    tournament.tournament_status
+  );
 
   return (
     <article className="tournament-card">
@@ -75,6 +84,14 @@ function TournamentCard({
           <strong>{tournament.tournament_name}</strong>
 
           <span>{tournament.tournament_id}</span>
+
+          {status && (
+            <span
+              className={`tournament-status-badge tournament-status-${status.className}`}
+            >
+              {status.label}
+            </span>
+          )}
         </span>
 
         <span className="tournament-expand-icon">
@@ -125,20 +142,15 @@ function TournamentCard({
             </strong>
           </div>
 
-          <button
-            type="button"
-            className="tournament-register-button"
-            onClick={() =>
-              navigate(
-                `/tournaments/register/${encodeURIComponent(
-                  tournament.tournament_id
-                )}`
-              )
-            }
-          >
-            <span>Register Now</span>
-            <ArrowRight size={16} />
-          </button>
+          {status?.canRegister && (
+            <button
+              type="button"
+              className="tournament-register-button"
+            >
+              <span>Register Now</span>
+              <ArrowRight size={16} />
+            </button>
+          )}
         </div>
       )}
     </article>
