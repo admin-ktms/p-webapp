@@ -1,4 +1,3 @@
-
 import { supabase } from "../lib/supabase";
 import { callApi } from "../lib/api";
 
@@ -12,52 +11,18 @@ import type {
   SquadScreenshotsResponse
 } from "../types/squad.types";
 
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+const IMAGE_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png"
+};
+
 export const squadService = {
   async listOwn(): Promise<SquadListResponse> {
     return callApi<SquadListResponse>(
       "squad.list_own"
     );
-    async uploadScreenshot(
-      playerId: string,
-      squadId: string,
-      file: File
-    ): Promise<string> {
-      const MAX_FILE_SIZE = 2 * 1024 * 1024;
-    
-      const extensions: Record<string, string> = {
-        "image/jpeg": "jpg",
-        "image/png": "png"
-      };
-    
-      if (!extensions[file.type]) {
-        throw new Error("Only JPEG and PNG images are allowed.");
-      }
-    
-      if (file.size <= 0 || file.size > MAX_FILE_SIZE) {
-        throw new Error("Each screenshot must be between 1 byte and 2 MB.");
-      }
-    
-      if (!playerId || !squadId) {
-        throw new Error("Player and squad identifiers are required.");
-      }
-    
-      const filename = `${crypto.randomUUID()}.${extensions[file.type]}`;
-      const path = `${playerId}/${squadId}/${filename}`;
-    
-      const { data, error } = await supabase.storage
-        .from("squad-screenshot-bucket")
-        .upload(path, file, {
-          cacheControl: "3600",
-          contentType: file.type,
-          upsert: false
-        });
-    
-      if (error) {
-        throw new Error(error.message);
-      }
-    
-      return data.path;
-    },
   },
 
   async create(
@@ -122,5 +87,51 @@ export const squadService = {
         squad_id: squadId
       }
     );
+  },
+
+  async uploadScreenshot(
+    playerId: string,
+    squadId: string,
+    file: File
+  ): Promise<string> {
+    const extension = IMAGE_EXTENSIONS[file.type];
+
+    if (!extension) {
+      throw new Error(
+        "Only JPEG and PNG images are allowed."
+      );
+    }
+
+    if (file.size <= 0 || file.size > MAX_FILE_SIZE) {
+      throw new Error(
+        "Each screenshot must be between 1 byte and 2 MB."
+      );
+    }
+
+    if (!playerId || !squadId) {
+      throw new Error(
+        "Player and squad identifiers are required."
+      );
+    }
+
+    const filename =
+      `${crypto.randomUUID()}.${extension}`;
+
+    const path =
+      `${playerId}/${squadId}/${filename}`;
+
+    const { data, error } = await supabase.storage
+      .from("squad-screenshot-bucket")
+      .upload(path, file, {
+        cacheControl: "3600",
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data.path;
   }
 };
