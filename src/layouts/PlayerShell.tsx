@@ -72,7 +72,7 @@ function PlayerShell() {
           </div>
 
           <div>
-            <strong>KICKOFF</strong>
+            <strong>KICKOFF DLS</strong>
             <span>PLAYER ARENA</span>
           </div>
         </div>
@@ -158,7 +158,7 @@ function PlayerShell() {
               <Trophy size={19} />
             </div>
 
-            <strong>KICKOFF</strong>
+            <strong>KICKOFF DLS</strong>
           </div>
 
           <div className="header-right">
