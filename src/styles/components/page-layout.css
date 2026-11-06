@@ -1,11 +1,16 @@
 /* =========================================
-   REUSABLE PAGE LAYOUT
+   CONVERSATION PAGE LAYOUT
 
-   Fixed page header.
-   Independently scrollable page content.
+   The page content itself must not scroll.
+   MessageTimeline owns the scroll area.
 ========================================= */
 
-.page-layout {
+.conversation-page-layout .page-layout-content {
+  display: flex;
+  overflow: hidden;
+}
+
+.conversation-page-content {
   display: flex;
   width: 100%;
   height: 100%;
@@ -13,20 +18,4 @@
   flex: 1 1 auto;
   flex-direction: column;
   overflow: hidden;
-}
-
-.page-layout-header {
-  width: 100%;
-  flex: 0 0 auto;
-}
-
-.page-layout-content {
-  width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
 }
