@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import { chatService } from "../../services/chat.service";
 
+import { useChatNotifications } from "./ChatNotificationsContext";
+
 import type {
   ChatConversation,
   ChatInboxCursor
@@ -34,6 +36,8 @@ export function useChatInbox(): UseChatInboxResult {
 
   const [nextCursor, setNextCursor] =
     useState<ChatInboxCursor | null>(null);
+
+  const { lastMessageEvent } = useChatNotifications();
 
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -105,6 +109,13 @@ export function useChatInbox(): UseChatInboxResult {
     nextCursor
   ]);
 
+  useEffect(() => {
+    if (!lastMessageEvent) return;
+  
+    // Refresh authoritative conversation unread counts.
+    void refresh();
+  }, [lastMessageEvent, refresh]);
+  
   useEffect(() => {
     void refresh();
   }, [refresh]);
