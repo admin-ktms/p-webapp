@@ -22,6 +22,12 @@ import {
 
 import { useAuth } from "../app/AuthContext";
 
+import {
+  ChatNotificationsProvider,
+  useChatNotifications
+} from "../hooks/chat/ChatNotificationsContext";
+
+
 const primaryLinks = [
   { label: "Home", path: "/", icon: Home },
   { label: "Tournaments", path: "/tournaments", icon: Trophy },
@@ -35,7 +41,7 @@ const moreLinks = [
   { label: "Registrations", path: "/registrations", icon: ClipboardList }
 ];
 
-function PlayerShell() {
+function PlayerShellContent() {
   const location = useLocation();
   
   const { accessLevel, username, signOut } = useAuth();
@@ -55,6 +61,8 @@ function PlayerShell() {
   const isMoreRoute = morePaths.includes(location.pathname);
 
   const showMore = !profileOnly && (moreOpen || isMoreRoute);
+  
+  const { unreadCount } = useChatNotifications();
 
   const closeMore = () => setMoreOpen(false);
 
@@ -90,8 +98,22 @@ function PlayerShell() {
                 end={item.path === "/"}
                 className={linkClass}
               >
+                
+              <span className="relative inline-flex">
                 <Icon size={19} />
-                <span>{item.label}</span>
+              
+                {item.path === "/chats" && unreadCount > 0 && (
+                  <span
+                    className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white"
+                    aria-label={`${unreadCount} unread messages`}
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </span>
+              
+              <span>{item.label}</span>
+                
               </NavLink>
             );
           })}
@@ -242,8 +264,22 @@ function PlayerShell() {
               className={linkClass}
               onClick={closeMore}
             >
+
+            <span className="relative inline-flex">
               <Icon size={21} />
-              <span>{item.label}</span>
+            
+              {item.path === "/chats" && unreadCount > 0 && (
+                <span
+                  className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white"
+                  aria-label={`${unreadCount} unread messages`}
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </span>
+            
+            <span>{item.label}</span>
+              
             </NavLink>
           );
         })}
@@ -266,4 +302,18 @@ function PlayerShell() {
   );
 }
 
+
+function PlayerShell() {
+  const { identity } = useAuth();
+
+  return (
+    <ChatNotificationsProvider
+      playerId={identity?.player_id ?? null}
+    >
+      <PlayerShellContent />
+    </ChatNotificationsProvider>
+  );
+}
+
 export default PlayerShell;
+
