@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { chatService } from "../../services/chat.service";
 
-import { useChatNotifications } from "./ChatNotificationsContext";
+import { useChatNotifications } from "./ChatNotificationContext";
 
 import type {
   ChatConversation,
