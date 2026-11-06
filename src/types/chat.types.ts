@@ -44,6 +44,12 @@ export interface ChatInboxCursor {
   conversation_id: string;
 }
 
+
+export interface ChatUnreadCountResponse {
+  unread_count: BigintValue;
+}
+
+
 // Exact row returned by notifications.get_my_conversations().
 export interface ChatConversation {
   conversation_id: string;
