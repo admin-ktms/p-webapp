@@ -1,10 +1,13 @@
+import { useEffect, useState } from "react";
 
 import {
   ClipboardList,
   RefreshCw,
   Search,
   ChevronDown,
-  CreditCard
+  CreditCard,
+  Table2,
+  LayoutGrid
 } from "lucide-react";
 
 import PageLayout from "../../components/layout/PageLayout";
@@ -13,6 +16,23 @@ import { useRegistrations } from "../../hooks/registration/useRegistrations";
 import type {
   PlayerRegistration
 } from "../../types/registration.types";
+
+type RegistrationView = "table" | "cards";
+
+const REGISTRATION_VIEW_STORAGE_KEY =
+  "ktms-player-registration-view";
+
+function getInitialRegistrationView(): RegistrationView {
+  try {
+    const savedView = localStorage.getItem(
+      REGISTRATION_VIEW_STORAGE_KEY
+    );
+
+    return savedView === "cards" ? "cards" : "table";
+  } catch {
+    return "table";
+  }
+}
 
 function formatCurrency(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) {
@@ -158,7 +178,126 @@ function RegistrationRow({
   );
 }
 
+function RegistrationTable({
+  registrations
+}: {
+  registrations: PlayerRegistration[];
+}) {
+  return (
+    <div
+      className="registration-table-scroll"
+      role="region"
+      aria-label="Registration history table"
+      tabIndex={0}
+    >
+      <table className="registration-table">
+        <thead>
+          <tr>
+            <th>Tournament</th>
+            <th>Type</th>
+            <th>Squad</th>
+            <th>Amount paid</th>
+            <th>Registration fee</th>
+            <th>Payment method</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {registrations.map((registration, index) => {
+            const canCompletePayment =
+              registration.status === "Pending Payment";
+
+            return (
+              <tr
+                key={
+                  registration.registration_reference_id ||
+                  registration.request_id ||
+                  `${registration.tournament_id}-${index}`
+                }
+              >
+                <td>
+                  <div className="registration-table-tournament">
+                    <strong>
+                      {registration.tournament_name || "Tournament"}
+                    </strong>
+
+                    <span>{registration.tournament_id}</span>
+                  </div>
+                </td>
+
+                <td>{registration.tournament_type_id}</td>
+
+                <td>{registration.squad_name || "—"}</td>
+
+                <td>
+                  {formatCurrency(registration.amount_paid)}
+                </td>
+
+                <td>
+                  {formatCurrency(registration.registration_fee)}
+                </td>
+
+                <td>{registration.payment_method || "—"}</td>
+
+                <td>
+                  <span
+                    className={`registration-status ${getStatusClass(
+                      registration.status
+                    )}`}
+                  >
+                    {registration.status}
+                  </span>
+                </td>
+
+                <td>
+                  {formatDate(
+                    registration.registration_datetime ||
+                    registration.request_datetime
+                  )}
+                </td>
+
+                <td>
+                  {canCompletePayment ? (
+                    <button
+                      type="button"
+                      className="registration-payment-button"
+                      disabled
+                      title="Payment integration is not yet available"
+                    >
+                      <CreditCard size={14} />
+                      Complete payment
+                    </button>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function RegistrationsPage() {
+  const [view, setView] = useState<RegistrationView>(
+    getInitialRegistrationView
+  );
+  
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        REGISTRATION_VIEW_STORAGE_KEY,
+        view
+      );
+    } catch {
+      // View selection still works if storage is unavailable.
+    }
+  }, [view]);
   const {
     registrations,
     providers,
@@ -348,20 +487,64 @@ function RegistrationsPage() {
         ) : (
           <section className="registration-list">
             <div className="registration-list-heading">
-              <h2>Registration history</h2>
-              <span>{registrations.length} records</span>
+              <div className="registration-list-title">
+                <h2>Registration history</h2>
+                <span>{registrations.length} records</span>
+              </div>
+          
+              <div
+                className="registration-view-toggle"
+                role="group"
+                aria-label="Registration display mode"
+              >
+                <button
+                  type="button"
+                  className={
+                    view === "table"
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() => setView("table")}
+                  aria-label="Table view"
+                  aria-pressed={view === "table"}
+                  title="Table view"
+                >
+                  <Table2 size={16} />
+                </button>
+          
+                <button
+                  type="button"
+                  className={
+                    view === "cards"
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() => setView("cards")}
+                  aria-label="Card view"
+                  aria-pressed={view === "cards"}
+                  title="Card view"
+                >
+                  <LayoutGrid size={16} />
+                </button>
+              </div>
             </div>
-
-            {registrations.map((registration, index) => (
-              <RegistrationRow
-                key={
-                  registration.registration_reference_id ||
-                  registration.request_id ||
-                  `${registration.tournament_id}-${index}`
-                }
-                registration={registration}
+          
+            {view === "table" ? (
+              <RegistrationTable
+                registrations={registrations}
               />
-            ))}
+            ) : (
+              registrations.map((registration, index) => (
+                <RegistrationRow
+                  key={
+                    registration.registration_reference_id ||
+                    registration.request_id ||
+                    `${registration.tournament_id}-${index}`
+                  }
+                  registration={registration}
+                />
+              ))
+            )}
           </section>
         )}
 
