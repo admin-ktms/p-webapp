@@ -25,7 +25,7 @@ import { useAuth } from "../app/AuthContext";
 import {
   ChatNotificationsProvider,
   useChatNotifications
-} from "../hooks/chat/ChatNotificationsContext";
+} from "../hooks/chat/ChatNotificationContext";
 
 
 const primaryLinks = [
