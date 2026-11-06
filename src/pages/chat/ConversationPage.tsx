@@ -21,6 +21,7 @@ import {
   useChatNotifications
 } from "../../hooks/chat/ChatNotificationContext";
 
+import PageLayout from "../../components/layout/PageLayout";
 import MessageTimeline from "../../components/chat/MessageTimeline";
 import MessageComposer from "../../components/chat/MessageComposer";
 
@@ -101,6 +102,7 @@ function ConversationPage() {
     lastMessageEvent,
     refreshUnreadCount
   } = useChatNotifications();
+
   const stateConversation =
     location.state?.conversation as
       | ChatConversation
@@ -182,22 +184,22 @@ function ConversationPage() {
     refreshUnreadCount
   );
 
-    useEffect(() => {
-      if (
-        !lastMessageEvent ||
-        lastMessageEvent.conversation_id !== conversationId
-      ) {
-        return;
-      }
-    
-      // Refresh only the conversation receiving the event.
-      void refresh();
-  }, [lastMessageEvent, conversationId, refresh]);
-  
-    if (!conversationId) {
-      return null;
+  useEffect(() => {
+    if (
+      !lastMessageEvent ||
+      lastMessageEvent.conversation_id !== conversationId
+    ) {
+      return;
     }
-  
+
+    // Refresh only the conversation receiving the event.
+    void refresh();
+  }, [lastMessageEvent, conversationId, refresh]);
+
+  if (!conversationId) {
+    return null;
+  }
+
   const title = getConversationTitle(conversation);
   const category = getConversationCategory(conversation);
 
@@ -214,82 +216,85 @@ function ConversationPage() {
     );
 
   return (
-    <section className="flex min-h-[70vh] flex-col overflow-hidden rounded-xl border border-white/5 bg-[#050505]">
+    <PageLayout
+      header={
+        <header className="flex shrink-0 items-center gap-3 border-b border-white/10 bg-[#141414] px-3 py-3">
 
-      {/* Conversation header */}
-      <header className="flex shrink-0 items-center gap-3 border-b border-white/10 bg-[#141414] px-3 py-3">
+          <button
+            type="button"
+            onClick={() => navigate("/chats")}
+            aria-label="Back to chats"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-neutral-300 transition hover:bg-white/5"
+          >
+            <ArrowLeft size={20} />
+          </button>
 
-        <button
-          type="button"
-          onClick={() => navigate("/chats")}
-          aria-label="Back to chats"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-neutral-300 transition hover:bg-white/5"
-        >
-          <ArrowLeft size={20} />
-        </button>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-lime-400">
+            <MessageCircle size={19} />
+          </div>
 
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-lime-400">
-          <MessageCircle size={19} />
-        </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-sm font-bold text-white">
+              {title}
+            </h1>
 
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-bold text-white">
-            {title}
-          </h1>
+            <p className="mt-1 truncate text-[9px] font-semibold tracking-wider text-lime-400">
+              {category}
+            </p>
+          </div>
 
-          <p className="mt-1 truncate text-[9px] font-semibold tracking-wider text-lime-400">
-            {category}
-          </p>
-        </div>
+          {conversation?.conversation_type === "FIXTURE" && (
+            <ShieldCheck
+              size={19}
+              className="shrink-0 text-neutral-400"
+            />
+          )}
 
-        {conversation?.conversation_type === "FIXTURE" && (
-          <ShieldCheck
-            size={19}
-            className="shrink-0 text-neutral-400"
-          />
+        </header>
+      }
+    >
+      <div className="flex h-full min-h-0 flex-col overflow-hidden pb-[calc(78px+env(safe-area-inset-bottom))] md:pb-0">
+
+        {/* Conversation status */}
+        {conversation && !isActive && (
+          <div className="shrink-0 border-b border-white/5 bg-white/[0.025] px-4 py-2">
+            <p className="text-center text-[10px] text-neutral-500">
+              This conversation is {conversation.conversation_status.toLowerCase()}.
+            </p>
+          </div>
         )}
 
-      </header>
-
-      {/* Conversation status */}
-      {conversation && !isActive && (
-        <div className="border-b border-white/5 bg-white/[0.025] px-4 py-2">
-          <p className="text-center text-[10px] text-neutral-500">
-            This conversation is {conversation.conversation_status.toLowerCase()}.
-          </p>
-        </div>
-      )}
-
-      {/* Message history */}
-      <MessageTimeline
-        messages={messages}
-        currentPlayerId={identity?.player_id ?? null}
-        loading={loading}
-        loadingMore={loadingMore}
-        hasMore={hasMore}
-        error={error}
-        onLoadOlder={loadOlder}
-        onRetry={refresh}
-      />
-
-      {/* Composer */}
-      {canSend ? (
-        <MessageComposer
-          sending={sending}
-          sendError={sendError}
-          onSend={sendMessage}
+        {/* Message history */}
+        <MessageTimeline
+          messages={messages}
+          currentPlayerId={identity?.player_id ?? null}
+          loading={loading}
+          loadingMore={loadingMore}
+          hasMore={hasMore}
+          error={error}
+          onLoadOlder={loadOlder}
+          onRetry={refresh}
         />
-      ) : (
-        <div className="shrink-0 border-t border-white/10 bg-[#141414] px-4 py-4">
-          <p className="text-center text-xs text-neutral-500">
-            {conversation
-              ? "Messaging is unavailable for this conversation."
-              : "Conversation details are unavailable. Sending is disabled."}
-          </p>
-        </div>
-      )}
 
-    </section>
+        {/* Composer */}
+        {canSend ? (
+          <MessageComposer
+            sending={sending}
+            sendError={sendError}
+            onSend={sendMessage}
+          />
+        ) : (
+          <div className="shrink-0 border-t border-white/10 bg-[#141414] px-4 py-4">
+            <p className="text-center text-xs text-neutral-500">
+              {conversation
+                ? "Messaging is unavailable for this conversation."
+                : "Conversation details are unavailable. Sending is disabled."}
+            </p>
+          </div>
+        )}
+
+      </div>
+    </PageLayout>
   );
 }
 
