@@ -126,7 +126,7 @@ function MessageTimeline({
 
   if (loading && messages.length === 0) {
     return (
-      <div className="flex min-h-0 flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <LoaderCircle
           size={24}
           className="animate-spin text-lime-400"
@@ -137,7 +137,7 @@ function MessageTimeline({
 
   if (error && messages.length === 0) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
         <p className="text-sm text-red-300">{error}</p>
 
         <button
@@ -153,7 +153,7 @@ function MessageTimeline({
 
   if (messages.length === 0) {
     return (
-      <div className="flex min-h-0 flex-1 items-center justify-center px-5 text-center">
+      <div className="flex flex-1 items-center justify-center px-5 text-center">
         <p className="text-sm text-neutral-500">
           No messages in this conversation yet.
         </p>
@@ -165,7 +165,7 @@ function MessageTimeline({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4"
+      className="flex-1 space-y-3 overflow-y-auto px-3 py-4"
       aria-label="Conversation messages"
       role="log"
       aria-live="polite"
