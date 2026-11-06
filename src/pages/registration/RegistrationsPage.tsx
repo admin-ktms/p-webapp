@@ -181,11 +181,6 @@ function RegistrationsPage() {
     loadMore
   } = useRegistrations();
 
-  const availableTypes = providers.filter(
-    (provider) =>
-      provider.status === "available" ||
-      provider.status === "empty"
-  );
 
   return (
     <PageLayout
