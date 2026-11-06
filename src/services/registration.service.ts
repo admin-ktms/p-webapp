@@ -41,7 +41,8 @@ export const registrationService = {
         squad_id: input.squad_id
       }
     );
-  }
+  },
+  
   async listOwn(
     input: PlayerRegistrationsInput = {}
   ): Promise<PlayerRegistrationsResponse> {
