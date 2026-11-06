@@ -16,6 +16,8 @@ import ConversationPage from "../pages/chat/ConversationPage";
 import TournamentsPage from "../pages/tournament/TournamentsPage";
 import TournamentDirectoryPage from "../pages/tournament/TournamentDirectoryPage";
 
+import RegistrationsPage from "../pages/registration/RegistrationsPage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -88,7 +90,7 @@ function App() {
 
           <Route
             path="registrations"
-            element={<PlaceholderPage title="Registrations" />}
+            element={<RegistrationsPage />}
           />
 
           <Route
