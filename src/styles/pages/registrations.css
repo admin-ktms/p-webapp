@@ -1,0 +1,481 @@
+
+/* =========================================
+   REGISTRATIONS PAGE
+========================================= */
+
+.registrations-page {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.registrations-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.registrations-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+}
+
+.registrations-heading-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  color: var(--primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.registrations-eyebrow {
+  margin: 0 0 5px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 1.4px;
+}
+
+.registrations-heading h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 850;
+}
+
+.registrations-heading p:last-child {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.registrations-refresh-button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.registrations-refresh-button:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.registrations-refresh-button:disabled {
+  opacity: 0.5;
+}
+
+.registrations-content {
+  width: 100%;
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 25px 32px 35px;
+}
+
+.registrations-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.registrations-summary > div {
+  display: flex;
+  min-width: 150px;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.registrations-summary span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+.registrations-summary strong {
+  font-size: 23px;
+  font-weight: 850;
+}
+
+.registrations-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.registration-filter {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.registration-filter > span:first-child {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.registration-select-wrapper,
+.registration-search-wrapper {
+  display: flex;
+  min-width: 0;
+  min-height: 41px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.registration-select-wrapper select,
+.registration-search-wrapper input {
+  width: 100%;
+  min-width: 0;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: none;
+  font: inherit;
+  font-size: 11px;
+}
+
+.registration-select-wrapper select {
+  appearance: none;
+}
+
+.registration-select-wrapper select option {
+  color: var(--text);
+  background: var(--panel);
+}
+
+.registration-search-wrapper input::placeholder {
+  color: var(--muted);
+}
+
+.registration-select-wrapper:focus-within,
+.registration-search-wrapper:focus-within {
+  border-color: var(--primary);
+}
+
+.registration-provider-notice,
+.registration-error {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.registration-provider-notice {
+  color: var(--gold);
+  background: rgb(255 200 87 / 7%);
+  border: 1px solid rgb(255 200 87 / 20%);
+}
+
+.registration-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--danger);
+  background: rgb(255 69 89 / 8%);
+  border: 1px solid rgb(255 69 89 / 22%);
+}
+
+.registration-error p {
+  margin: 0;
+}
+
+.registration-error button {
+  flex: 0 0 auto;
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.registration-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.registration-list-heading h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.registration-list-heading span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.registration-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.registration-record {
+  min-width: 0;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.registration-record-main {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.5fr) repeat(5, minmax(90px, 1fr));
+  gap: 15px;
+  align-items: start;
+}
+
+.registration-record-main > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.registration-record-main span {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
+
+.registration-record-main strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.registration-record-tournament strong {
+  font-size: 12px;
+}
+
+.registration-record-tournament span {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.registration-record-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.registration-status {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.registration-status-success {
+  color: var(--success);
+  background: rgb(53 208 127 / 8%);
+  border-color: rgb(53 208 127 / 22%);
+}
+
+.registration-status-pending {
+  color: var(--gold);
+  background: rgb(255 200 87 / 8%);
+  border-color: rgb(255 200 87 / 22%);
+}
+
+.registration-status-danger {
+  color: var(--danger);
+  background: rgb(255 69 89 / 8%);
+  border-color: rgb(255 69 89 / 22%);
+}
+
+.registration-status-neutral {
+  color: var(--muted);
+  background: rgb(163 163 163 / 7%);
+  border-color: var(--border);
+}
+
+.registration-record-date {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.registration-payment-button {
+  display: inline-flex;
+  min-height: 31px;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 0 10px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 9px;
+  font-weight: 750;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.registration-state {
+  display: flex;
+  min-height: 230px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.registration-state strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.registration-state p {
+  margin: 0;
+  font-size: 11px;
+}
+
+.registration-spinner {
+  animation: registration-spin 1s linear infinite;
+}
+
+@keyframes registration-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.registration-load-more {
+  display: block;
+  min-height: 40px;
+  margin: 20px auto 0;
+  padding: 0 18px;
+  color: var(--primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.registration-end-note,
+.registration-loading-more {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Tablet */
+
+@media (max-width: 1000px) {
+  .registration-record-main {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .registration-record-tournament {
+    grid-column: span 2;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 767px) {
+  .registrations-page-header {
+    padding: 17px;
+  }
+
+  .registrations-heading-icon {
+    width: 37px;
+    height: 37px;
+    flex-basis: 37px;
+  }
+
+  .registrations-heading h1 {
+    font-size: 19px;
+  }
+
+  .registrations-heading p:last-child {
+    max-width: 250px;
+    line-height: 1.5;
+  }
+
+  .registrations-content {
+    padding: 19px 16px
+      calc(110px + env(safe-area-inset-bottom));
+  }
+
+  .registrations-filters {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 13px;
+  }
+
+  .registration-record {
+    padding: 13px;
+  }
+
+  .registration-record-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px 12px;
+  }
+
+  .registration-record-tournament {
+    grid-column: 1 / -1;
+  }
+
+  .registration-record-footer {
+    align-items: flex-start;
+  }
+
+  .registration-payment-button {
+    margin-left: 0;
+  }
+}
