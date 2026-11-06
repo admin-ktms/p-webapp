@@ -110,6 +110,11 @@
   text-overflow: ellipsis;
 }
 
+/* Keep notification badges visible outside their icon wrapper */
+.nav-link > span.relative {
+  overflow: visible;
+}
+
 /* More navigation */
 .more-section {
   display: flex;
