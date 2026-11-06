@@ -70,7 +70,8 @@ function mergeMessages(
 }
 
 export function useConversationMessages(
-  conversationId: string
+  conversationId: string,
+  onConversationRead?: () => Promise<void>
 ): UseConversationMessagesResult {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -95,11 +96,13 @@ export function useConversationMessages(
           conversation_id: conversationId,
           through_message_id: messageId
         });
+      
+        await onConversationRead?.();
       } catch {
         // Reading can be retried on the next refresh.
       }
     },
-    [conversationId]
+    [conversationId, onConversationRead]
   );
 
   const refresh = useCallback(async () => {
