@@ -17,7 +17,9 @@ import { chatService } from "../../services/chat.service";
 import { useAuth } from "../../app/AuthContext";
 
 import { useConversationMessages } from "../../hooks/chat/useConversationMessages";
-import { useChatRealtime } from "../../hooks/chat/useRealtime";
+import {
+  useChatNotifications
+} from "../../hooks/chat/ChatNotificationsContext";
 
 import MessageTimeline from "../../components/chat/MessageTimeline";
 import MessageComposer from "../../components/chat/MessageComposer";
@@ -95,7 +97,10 @@ function ConversationPage() {
   const location = useLocation();
 
   const { identity } = useAuth();
-
+  const {
+    lastMessageEvent,
+    refreshUnreadCount
+  } = useChatNotifications();
   const stateConversation =
     location.state?.conversation as
       | ChatConversation
@@ -172,13 +177,22 @@ function ConversationPage() {
     loadOlder,
     sendMessage,
     refresh
-  } = useConversationMessages(conversationId ?? "");
+  } = useConversationMessages(
+    conversationId ?? "",
+    refreshUnreadCount
+  );
 
-    useChatRealtime(
-      identity?.player_id ?? null,
-      conversationId ?? "",
-      refresh
-    );
+    useEffect(() => {
+      if (
+        !lastMessageEvent ||
+        lastMessageEvent.conversation_id !== conversationId
+      ) {
+        return;
+      }
+    
+      // Refresh only the conversation receiving the event.
+      void refresh();
+  }, [lastMessageEvent, conversationId, refresh]);
   
     if (!conversationId) {
       return null;
