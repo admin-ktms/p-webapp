@@ -8,6 +8,7 @@ import type {
   ChatMessagesResponse,
   SendChatMessageInput,
   SendChatMessageResponse,
+  ChatUnreadCountResponse,
   MarkConversationReadInput,
   MarkConversationReadResponse,
   CreateSupportCaseInput,
@@ -21,6 +22,14 @@ export const chatService = {
     return callApi<ChatInboxResponse>(
       "chat.inbox.list",
       { ...input }
+    );
+  },
+
+  
+  async getUnreadCount(): Promise<ChatUnreadCountResponse> {
+    return callApi<ChatUnreadCountResponse>(
+      "chat.unread.count",
+      {}
     );
   },
 
