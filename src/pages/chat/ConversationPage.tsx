@@ -19,7 +19,7 @@ import { useAuth } from "../../app/AuthContext";
 import { useConversationMessages } from "../../hooks/chat/useConversationMessages";
 import {
   useChatNotifications
-} from "../../hooks/chat/ChatNotificationsContext";
+} from "../../hooks/chat/ChatNotificationContext";
 
 import MessageTimeline from "../../components/chat/MessageTimeline";
 import MessageComposer from "../../components/chat/MessageComposer";
