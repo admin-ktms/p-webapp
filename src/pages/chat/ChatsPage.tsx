@@ -48,7 +48,7 @@ function ChatsPage() {
         </header>
       }
     >
-      <>
+      <div className="pb-[calc(73px+env(safe-area-inset-bottom))] md:pb-0">
         {error && (
           <div
             role="alert"
@@ -99,7 +99,7 @@ function ChatsPage() {
             )}
           </section>
         )}
-      </>
+      </div>
     </PageLayout>
   );
 }
